@@ -1,0 +1,295 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  --app-bg: #edf1ec;
+  --app-panel: #fffdf8;
+  --app-panel-muted: #f7f6f0;
+  --app-chat-bg: #efe7dc;
+  --app-chat-glow: rgba(87, 135, 116, 0.18);
+  --app-card: rgba(255, 253, 248, 0.86);
+  --app-card-strong: #ffffff;
+  --app-input: #f7f5ef;
+  --app-soft: #eef2eb;
+  --app-hover: #e7ece5;
+  --app-border: #ded8cc;
+  --app-border-soft: #e8e2d8;
+
+  --text-primary: #25322d;
+  --text-secondary: #66736d;
+  --text-muted: #8b968f;
+  --text-inverse: #ffffff;
+
+  --accent: #2f7d5a;
+  --accent-strong: #1f5f44;
+  --accent-soft: #dcf2e5;
+  --accent-muted: #eff7f2;
+  --success: #2aa86c;
+  --warning: #b7791f;
+  --danger: #c2413a;
+
+  --bubble-own: #d9fdd3;
+  --bubble-other: #fffdf8;
+  --shadow-soft: 0 18px 50px rgba(70, 55, 32, 0.12);
+  --shadow-tight: 0 10px 30px rgba(70, 55, 32, 0.1);
+
+  --avatar-text: #1f2d27;
+  --avatar-primary-from: #a8dbc2;
+  --avatar-primary-to: #f5d59a;
+  --avatar-work-from: #a7d7bd;
+  --avatar-work-to: #f2d48a;
+  --avatar-design-from: #f5b7a6;
+  --avatar-design-to: #f3cf8d;
+  --avatar-team-from: #b8c6ef;
+  --avatar-team-to: #9dd6c5;
+  --avatar-support-from: #f2cf8d;
+  --avatar-support-to: #bedf9a;
+  --avatar-neutral-from: #e8dfd2;
+  --avatar-neutral-to: #b8d8c4;
+
+  background: var(--app-bg);
+  text-rendering: geometricPrecision;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--app-bg);
+  overflow: hidden;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(47, 125, 90, 0.22);
+  color: var(--text-primary);
+}
+
+textarea,
+input,
+button {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(102, 115, 109, 0.22);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 115, 109, 0.36);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+@layer components {
+  .app-root {
+    background: var(--app-bg);
+    color: var(--text-primary);
+  }
+
+  .app-auth-background {
+    background:
+      radial-gradient(circle at 14% 12%, rgba(47, 125, 90, 0.14), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(183, 121, 31, 0.12), transparent 28%),
+      var(--app-bg);
+  }
+
+  .app-chat-surface {
+    background:
+      radial-gradient(circle at top left, var(--app-chat-glow), transparent 32%),
+      linear-gradient(135deg, rgba(255, 253, 248, 0.28), transparent 30%),
+      var(--app-chat-bg);
+  }
+
+  .app-panel {
+    background: var(--app-panel);
+    color: var(--text-primary);
+  }
+
+  .app-panel-muted {
+    background: var(--app-panel-muted);
+  }
+
+  .app-card {
+    background: var(--app-card);
+    border-color: var(--app-border-soft);
+    box-shadow: var(--shadow-tight);
+  }
+
+  .app-card-strong {
+    background: var(--app-card-strong);
+    border-color: var(--app-border);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .app-input-shell {
+    background: var(--app-input);
+    border-color: var(--app-border);
+    color: var(--text-primary);
+  }
+
+  .app-input-shell:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47, 125, 90, 0.12);
+  }
+
+  .app-input {
+    color: var(--text-primary);
+  }
+
+  .app-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .app-border {
+    border-color: var(--app-border);
+  }
+
+  .app-border-soft {
+    border-color: var(--app-border-soft);
+  }
+
+  .app-text {
+    color: var(--text-primary);
+  }
+
+  .app-muted {
+    color: var(--text-secondary);
+  }
+
+  .app-faint {
+    color: var(--text-muted);
+  }
+
+  .app-accent-text {
+    color: var(--accent);
+  }
+
+  .app-success-text {
+    color: var(--success);
+  }
+
+  .app-icon-button {
+    color: var(--text-secondary);
+  }
+
+  .app-icon-button:hover {
+    background: var(--app-hover);
+    color: var(--text-primary);
+  }
+
+  .app-accent-button {
+    background: var(--accent);
+    color: var(--text-inverse);
+    box-shadow: 0 14px 30px rgba(47, 125, 90, 0.22);
+  }
+
+  .app-accent-button:hover {
+    background: var(--accent-strong);
+  }
+
+  .app-ghost-button {
+    border-color: var(--app-border);
+    color: var(--text-secondary);
+  }
+
+  .app-ghost-button:hover {
+    background: var(--app-hover);
+    color: var(--text-primary);
+  }
+
+  .app-selected {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+
+  .app-selected-muted {
+    color: var(--accent-strong);
+  }
+
+  .app-unread {
+    background: var(--accent);
+    color: var(--text-inverse);
+  }
+
+  .app-online-dot {
+    background: var(--success);
+    border-color: var(--app-panel);
+  }
+
+  .app-chip {
+    background: var(--accent-muted);
+    border-color: rgba(47, 125, 90, 0.2);
+    color: var(--accent-strong);
+  }
+
+  .app-own-bubble {
+    background: var(--bubble-own);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-tight);
+  }
+
+  .app-other-bubble {
+    background: var(--bubble-other);
+    border-color: var(--app-border-soft);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-tight);
+  }
+
+  .avatar-primary {
+    background: linear-gradient(135deg, var(--avatar-primary-from), var(--avatar-primary-to));
+  }
+
+  .avatar-work {
+    background: linear-gradient(135deg, var(--avatar-work-from), var(--avatar-work-to));
+  }
+
+  .avatar-design {
+    background: linear-gradient(135deg, var(--avatar-design-from), var(--avatar-design-to));
+  }
+
+  .avatar-team {
+    background: linear-gradient(135deg, var(--avatar-team-from), var(--avatar-team-to));
+  }
+
+  .avatar-support {
+    background: linear-gradient(135deg, var(--avatar-support-from), var(--avatar-support-to));
+  }
+
+  .avatar-neutral {
+    background: linear-gradient(135deg, var(--avatar-neutral-from), var(--avatar-neutral-to));
+  }
+}
