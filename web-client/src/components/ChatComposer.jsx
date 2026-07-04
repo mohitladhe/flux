@@ -22,7 +22,7 @@ export function ChatComposer() {
                 <button
                   key={label}
                   type="button"
-                  className="flex items-center gap-2 rounded-2xl border px-3 py-2 text-left transition app-ghost-button"
+                  className="flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition app-ghost-button"
                 >
                   <Icon size={16} className="app-accent-text" />
                   <span>
@@ -36,10 +36,10 @@ export function ChatComposer() {
         )}
       </AnimatePresence>
 
-      <div className="flex items-end gap-2 rounded-[1.5rem] border p-2 app-input-shell">
+      <div className="flex items-end gap-2 rounded-2xl border p-2 app-input-shell">
         <button
           type="button"
-          className={`grid size-11 shrink-0 place-items-center rounded-2xl transition ${
+          className={`grid size-11 shrink-0 place-items-center rounded-xl transition ${
             attachmentsOpen ? "app-selected" : "app-icon-button"
           }`}
           onClick={() => setAttachmentsOpen((open) => !open)}
@@ -56,14 +56,14 @@ export function ChatComposer() {
         />
         <button
           type="button"
-          className="hidden size-11 shrink-0 place-items-center rounded-2xl transition app-icon-button sm:grid"
+          className="hidden size-11 shrink-0 place-items-center rounded-xl transition app-icon-button sm:grid"
           aria-label="Add reaction"
         >
           <SmilePlus size={20} />
         </button>
         <motion.button
           type="button"
-          className="grid size-11 shrink-0 place-items-center rounded-2xl app-accent-button"
+          className="grid size-11 shrink-0 place-items-center rounded-xl app-accent-button"
           aria-label="Send message"
           whileTap={{ scale: 0.94 }}
         >

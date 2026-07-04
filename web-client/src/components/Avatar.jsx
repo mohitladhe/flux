@@ -8,7 +8,7 @@ export function Avatar({ label, gradient = "avatar-primary", online = false, siz
   return (
     <div className="relative shrink-0">
       <div
-        className={`${sizes[size]} grid place-items-center rounded-2xl ${gradient} font-bold shadow-lg`}
+        className={`${sizes[size]} grid place-items-center rounded-xl ${gradient} font-bold shadow-lg`}
         style={{ color: "var(--avatar-text)", boxShadow: "var(--shadow-tight)" }}
       >
         {label}

@@ -11,7 +11,7 @@ export function ChatWindow({ conversation, onOpenSidebar, onOpenDetails }) {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-2xl border app-border app-icon-button transition lg:hidden"
+            className="grid size-10 place-items-center rounded-xl border app-border app-icon-button transition lg:hidden"
             onClick={onOpenSidebar}
             aria-label="Open conversations"
           >
@@ -20,7 +20,7 @@ export function ChatWindow({ conversation, onOpenSidebar, onOpenDetails }) {
           <button
             type="button"
             onClick={onOpenDetails}
-            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-3xl px-2 py-1.5 text-left transition hover:bg-[var(--app-hover)]"
+            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-2xl px-2 py-1.5 text-left transition hover:bg-[var(--app-hover)]"
             aria-label="Open conversation details"
           >
             <div className="flex min-w-0 items-center gap-3">
@@ -44,7 +44,7 @@ export function ChatWindow({ conversation, onOpenSidebar, onOpenDetails }) {
               {[Search, Phone, Video].map((Icon, index) => (
                 <span
                   key={index}
-                  className="hidden size-10 place-items-center rounded-2xl app-icon-button sm:grid"
+                  className="hidden size-10 place-items-center rounded-xl app-icon-button sm:grid"
                 >
                   <Icon size={19} />
                 </span>
@@ -56,7 +56,7 @@ export function ChatWindow({ conversation, onOpenSidebar, onOpenDetails }) {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6">
         <div className="mx-auto flex max-w-4xl flex-col gap-5">
-          <div className="mx-auto flex max-w-xl items-center gap-3 rounded-3xl border app-chip px-4 py-3 text-center text-xs font-semibold">
+          <div className="mx-auto flex max-w-xl items-center gap-3 rounded-2xl border app-chip px-4 py-3 text-center text-xs font-semibold">
             <ShieldCheck size={16} className="shrink-0" />
             Key fingerprints match across every active device in this room.
           </div>

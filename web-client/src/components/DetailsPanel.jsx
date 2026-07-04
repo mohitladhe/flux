@@ -21,7 +21,7 @@ export function DetailsPanel({ conversation, open, onClose }) {
           <p className="text-sm font-bold uppercase tracking-[0.2em] app-muted">Details</p>
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-2xl transition app-icon-button"
+            className="grid size-10 place-items-center rounded-xl transition app-icon-button"
             onClick={onClose}
             aria-label="Close details panel"
           >
@@ -30,7 +30,7 @@ export function DetailsPanel({ conversation, open, onClose }) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          <div className="rounded-[1.5rem] border app-card p-5 text-center">
+          <div className="rounded-2xl border app-card p-5 text-center">
             <Avatar
               label={conversation.avatar}
               gradient={conversation.accent}
@@ -54,7 +54,7 @@ export function DetailsPanel({ conversation, open, onClose }) {
               <button
                 key={label}
                 type="button"
-                className="rounded-2xl border px-2 py-3 text-xs font-bold transition app-ghost-button"
+                className="rounded-xl border px-2 py-3 text-xs font-bold transition app-ghost-button"
               >
                 <Icon size={18} className="mx-auto mb-2" />
                 {label}
@@ -68,7 +68,7 @@ export function DetailsPanel({ conversation, open, onClose }) {
             </p>
             <div className="space-y-3">
               {trustSignals.map(({ icon: Icon, label, detail }) => (
-                <div key={label} className="flex gap-3 rounded-2xl border app-card p-3">
+                <div key={label} className="flex gap-3 rounded-xl border app-card p-3">
                   <div className="grid size-10 shrink-0 place-items-center rounded-xl app-chip">
                     <Icon size={18} />
                   </div>
@@ -89,7 +89,7 @@ export function DetailsPanel({ conversation, open, onClose }) {
               <button
                 key={file}
                 type="button"
-                className="mb-2 flex w-full items-center gap-3 rounded-2xl border p-3 text-left text-sm font-semibold transition app-ghost-button"
+                className="mb-2 flex w-full items-center gap-3 rounded-xl border p-3 text-left text-sm font-semibold transition app-ghost-button"
               >
                 <FileLock2 size={18} className="app-accent-text" />
                 <span className="min-w-0 truncate">{file}</span>

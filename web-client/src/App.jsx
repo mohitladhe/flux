@@ -1,22 +1,34 @@
-import { useState } from "react";
-import { AuthPage } from "./components/AuthPage";
-import { MessagingShell } from "./components/MessagingShell";
+import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { RegisterPage } from "./pages/RegisterPage";
+import { LoginPage } from "./pages/LoginPage";
+import { OtpVerificationPage } from "./pages/OtpVerificationPage"
+import { MessagingShell } from "./pages/MessagingShell";
+import { LoadingPage } from "./components/LoadingPage";
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
+  const [loading, setLoading] = useState(true);
 
-  if (!authenticated) {
-    return (
-      <AuthPage
-        mode={authMode}
-        onChangeMode={setAuthMode}
-        onAuthenticated={() => setAuthenticated(true)}
-      />
-    );
+  useEffect(() => {
+    const loadingTimer = window.setTimeout(() => {
+      setLoading(false);
+    }, 900);
+
+    return () => window.clearTimeout(loadingTimer);
+  }, []);
+
+  if (loading) {
+    return <LoadingPage />;
   }
 
-  return <MessagingShell />;
+  return(
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify" element={<OtpVerificationPage />} />
+      <Route path="/chat" element={<MessagingShell />} />
+    </Routes>
+  );
 }
 
 export default App;

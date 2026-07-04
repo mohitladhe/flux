@@ -1,59 +1,125 @@
 @import "tailwindcss";
 
+/* 1. Tell the browser where the font file is (Fixed path & format) */
+@font-face {
+  font-family: "Neue Metana Next";
+  src: url("/fonts/NeueMetanaNext-SemiBold.otf") format("opentype");
+  font-weight: 600;
+  /* Use 600 or 700 since it is a SemiBold font */
+  font-style: normal;
+}
+
+/* 2. Map the font into Tailwind v4's config engine */
+@theme {
+  --font-neue: "Neue Metana Next", sans-serif;
+}
+
+
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 
-  --app-bg: #edf1ec;
-  --app-panel: #fffdf8;
-  --app-panel-muted: #f7f6f0;
-  --app-chat-bg: #efe7dc;
-  --app-chat-glow: rgba(87, 135, 116, 0.18);
-  --app-card: rgba(255, 253, 248, 0.86);
-  --app-card-strong: #ffffff;
-  --app-input: #f7f5ef;
-  --app-soft: #eef2eb;
-  --app-hover: #e7ece5;
-  --app-border: #ded8cc;
-  --app-border-soft: #e8e2d8;
+  --bg-primary: #0f1115;
+  --bg-secondary: #1a1d24;
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --accent: #4f8cff;
+  --accent-secondary: #7c5cff;
+  --success: #22c55e;
 
-  --text-primary: #25322d;
-  --text-secondary: #66736d;
-  --text-muted: #8b968f;
+  --app-bg: var(--bg-primary);
+  --app-panel: rgba(20, 24, 33, 0.78);
+  --app-panel-muted: rgba(26, 29, 36, 0.74);
+  --app-chat-bg: #10131a;
+  --app-chat-glow: rgba(79, 140, 255, 0.2);
+  --app-card: var(--card-bg);
+  --app-card-strong: rgba(19, 23, 32, 0.88);
+  --app-input: rgba(255, 255, 255, 0.07);
+  --app-soft: rgba(255, 255, 255, 0.06);
+  --app-hover: rgba(255, 255, 255, 0.1);
+  --app-border: rgba(255, 255, 255, 0.13);
+  --app-border-soft: rgba(255, 255, 255, 0.09);
+
+  --text-muted: #758195;
   --text-inverse: #ffffff;
 
-  --accent: #2f7d5a;
-  --accent-strong: #1f5f44;
-  --accent-soft: #dcf2e5;
-  --accent-muted: #eff7f2;
-  --success: #2aa86c;
-  --warning: #b7791f;
-  --danger: #c2413a;
+  --accent-strong: #8eb5ff;
+  --accent-soft: rgba(79, 140, 255, 0.16);
+  --accent-muted: rgba(124, 92, 255, 0.15);
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --warning: #f59e0b;
+  --danger: #ef4444;
 
-  --bubble-own: #d9fdd3;
-  --bubble-other: #fffdf8;
-  --shadow-soft: 0 18px 50px rgba(70, 55, 32, 0.12);
-  --shadow-tight: 0 10px 30px rgba(70, 55, 32, 0.1);
+  --bubble-own: linear-gradient(135deg, #4f8cff, #7c5cff);
+  --bubble-other: rgba(255, 255, 255, 0.08);
+  --shadow-soft: 0 24px 70px rgba(0, 0, 0, 0.36);
+  --shadow-tight: 0 14px 34px rgba(0, 0, 0, 0.24);
+  --shadow-glow: 0 18px 40px rgba(79, 140, 255, 0.22);
 
-  --avatar-text: #1f2d27;
-  --avatar-primary-from: #a8dbc2;
-  --avatar-primary-to: #f5d59a;
-  --avatar-work-from: #a7d7bd;
-  --avatar-work-to: #f2d48a;
-  --avatar-design-from: #f5b7a6;
-  --avatar-design-to: #f3cf8d;
-  --avatar-team-from: #b8c6ef;
-  --avatar-team-to: #9dd6c5;
-  --avatar-support-from: #f2cf8d;
-  --avatar-support-to: #bedf9a;
-  --avatar-neutral-from: #e8dfd2;
-  --avatar-neutral-to: #b8d8c4;
+  --avatar-text: #ffffff;
+  --avatar-primary-from: #4f8cff;
+  --avatar-primary-to: #7c5cff;
+  --avatar-work-from: #06b6d4;
+  --avatar-work-to: #4f8cff;
+  --avatar-design-from: #f472b6;
+  --avatar-design-to: #7c5cff;
+  --avatar-team-from: #22c55e;
+  --avatar-team-to: #4f8cff;
+  --avatar-support-from: #f59e0b;
+  --avatar-support-to: #ef4444;
+  --avatar-neutral-from: #64748b;
+  --avatar-neutral-to: #334155;
 
   background: var(--app-bg);
-  text-rendering: geometricPrecision;
   font-synthesis: none;
+  text-rendering: geometricPrecision;
+}
+
+:root[data-theme="light"],
+.theme-light {
+  color-scheme: light;
+
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --accent: #2563eb;
+  --accent-secondary: #7c3aed;
+  --success: #16a34a;
+
+  --app-bg: var(--bg-primary);
+  --app-panel: rgba(255, 255, 255, 0.88);
+  --app-panel-muted: rgba(241, 245, 249, 0.82);
+  --app-chat-bg: #eef4ff;
+  --app-chat-glow: rgba(37, 99, 235, 0.16);
+  --app-card: var(--card-bg);
+  --app-card-strong: rgba(255, 255, 255, 0.94);
+  --app-input: rgba(255, 255, 255, 0.76);
+  --app-soft: rgba(15, 23, 42, 0.05);
+  --app-hover: rgba(37, 99, 235, 0.08);
+  --app-border: rgba(15, 23, 42, 0.12);
+  --app-border-soft: rgba(15, 23, 42, 0.08);
+
+  --text-muted: #8a94a6;
+  --text-inverse: #ffffff;
+
+  --accent-strong: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-muted: rgba(124, 58, 237, 0.1);
+  --success-soft: rgba(22, 163, 74, 0.11);
+
+  --bubble-own: linear-gradient(135deg, #2563eb, #7c3aed);
+  --bubble-other: rgba(255, 255, 255, 0.88);
+  --shadow-soft: 0 24px 70px rgba(15, 23, 42, 0.14);
+  --shadow-tight: 0 14px 34px rgba(15, 23, 42, 0.11);
+  --shadow-glow: 0 18px 40px rgba(37, 99, 235, 0.18);
+
+  --avatar-neutral-from: #94a3b8;
+  --avatar-neutral-to: #64748b;
 }
 
 * {
@@ -68,8 +134,22 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: var(--app-bg);
+  background:
+    radial-gradient(circle at 15% 12%, rgba(79, 140, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 86% 16%, rgba(124, 92, 255, 0.16), transparent 30%),
+    linear-gradient(135deg, var(--app-bg), var(--app-chat-bg));
   overflow: hidden;
+}
+
+body,
+button,
+input,
+textarea {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
 }
 
 button,
@@ -78,7 +158,7 @@ a {
 }
 
 ::selection {
-  background: rgba(47, 125, 90, 0.22);
+  background: rgba(79, 140, 255, 0.28);
   color: var(--text-primary);
 }
 
@@ -92,6 +172,11 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -102,55 +187,342 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(102, 115, 109, 0.22);
+  background: rgba(160, 174, 192, 0.25);
   border: 3px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 115, 109, 0.36);
+  background: rgba(160, 174, 192, 0.42);
   border: 3px solid transparent;
   background-clip: content-box;
 }
 
+@keyframes flux-gradient {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes flux-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flux-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes flux-pulse {
+
+  0%,
+  100% {
+    opacity: 0.52;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
 @layer components {
   .app-root {
-    background: var(--app-bg);
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(79, 140, 255, 0.18), transparent 32%),
+      radial-gradient(circle at 92% 8%, rgba(124, 92, 255, 0.16), transparent 34%),
+      linear-gradient(135deg, var(--app-bg), var(--app-chat-bg));
     color: var(--text-primary);
   }
 
+  .app-root::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at center, black 0%, transparent 72%);
+  }
+
   .app-auth-background {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: none;
+  }
+
+  .app-auth-background::after {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    content: "";
+    opacity: 0.3;
     background:
-      radial-gradient(circle at 14% 12%, rgba(47, 125, 90, 0.14), transparent 28%),
-      radial-gradient(circle at 88% 18%, rgba(183, 121, 31, 0.12), transparent 28%),
-      var(--app-bg);
+      radial-gradient(circle at 14% 12%, rgba(79, 140, 255, 0.22), transparent 30%),
+      radial-gradient(circle at 86% 18%, rgba(124, 92, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 50% 92%, rgba(34, 197, 94, 0.12), transparent 32%),
+      linear-gradient(135deg, var(--app-bg), var(--app-chat-bg));
+    background-size: 140% 140%;
+    animation: flux-gradient 20s ease-in-out infinite;
+  }
+
+  .app-auth-background::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at 50% 45%, black, transparent 68%);
+  }
+
+  .app-auth-background>* {
+    position: relative;
+    z-index: 1;
   }
 
   .app-chat-surface {
     background:
-      radial-gradient(circle at top left, var(--app-chat-glow), transparent 32%),
-      linear-gradient(135deg, rgba(255, 253, 248, 0.28), transparent 30%),
+      radial-gradient(circle at 16% 10%, var(--app-chat-glow), transparent 32%),
+      radial-gradient(circle at 92% 8%, rgba(124, 92, 255, 0.12), transparent 30%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 28%),
       var(--app-chat-bg);
+  }
+
+  /* ===========================
+   Loading Overlay
+=========================== */
+
+  .app-loading-page {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(15, 17, 21, .32);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* ===========================
+   Loading Dialog
+=========================== */
+
+  .app-loading-container {
+    width: min(18rem, calc(100vw - 3rem));
+    min-height: 13rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.75rem;
+    padding: 1.75rem 2rem;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    background:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, .06),
+        rgba(255, 255, 255, .02)),
+      rgba(20, 24, 33, .90);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, .45),
+      inset 0 1px 0 rgba(255, 255, 255, .05);
+    animation: flux-loading-enter .22s ease-out;
+  }
+
+  /* ===========================
+   Brand
+=========================== */
+
+  .app-loading-brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+  }
+
+  .app-loading-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .app-loading-title {
+    font-family: "Neue Metana Next", sans-serif;
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: white;
+    letter-spacing: .02em;
+  }
+
+  /* ===========================
+   Animation
+=========================== */
+
+  @keyframes flux-loading-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* ===========================
+   Mobile
+=========================== */
+
+  @media (max-width:640px) {
+    .app-loading-container {
+      width: min(15rem, calc(100vw - 2.5rem));
+      min-height: 11rem;
+      padding: 1.5rem;
+      gap: 1.4rem;
+    }
+
+    .app-loading-logo {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .app-loading-title {
+      font-size: 1.2rem;
+    }
+
+  }
+
+  /* ===========================
+   Tablet
+=========================== */
+
+  @media (min-width:641px) and (max-width:1024px) {
+
+    .app-loading-container {
+
+      width: 17rem;
+
+      min-height: 12rem;
+
+    }
+
+  }
+
+  .app-loading-brand-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2rem;
+  }
+
+  .app-loading-loader-card {
+    display: grid;
+    place-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .app-loading-spinner {
+    position: relative;
+    display: grid;
+    width: 7.5rem;
+    height: 7.5rem;
+    place-items: center;
+  }
+
+  .app-loading-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(160, 174, 192, 0.18);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent-secondary);
+    border-radius: 999px;
+    box-shadow: 0 0 34px rgba(79, 140, 255, 0.18);
+    animation: flux-spin 960ms linear infinite;
+  }
+
+  .app-loading-core {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    box-shadow: var(--shadow-glow);
+    animation: flux-pulse 1.4s ease-in-out infinite;
   }
 
   .app-panel {
     background: var(--app-panel);
     color: var(--text-primary);
+    backdrop-filter: blur(22px);
   }
 
   .app-panel-muted {
-    background: var(--app-panel-muted);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 46%),
+      var(--app-panel-muted);
+    backdrop-filter: blur(22px);
+  }
+
+  .app-card,
+  .app-card-strong {
+    backdrop-filter: blur(24px);
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      transform 220ms ease;
   }
 
   .app-card {
-    background: var(--app-card);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent 52%),
+      var(--app-card);
     border-color: var(--app-border-soft);
     box-shadow: var(--shadow-tight);
   }
 
+  .app-card:hover {
+    border-color: rgba(79, 140, 255, 0.26);
+    transform: translateY(-2px);
+  }
+
   .app-card-strong {
-    background: var(--app-card-strong);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 44%),
+      var(--app-card-strong);
     border-color: var(--app-border);
     box-shadow: var(--shadow-soft);
   }
@@ -159,11 +531,15 @@ button {
     background: var(--app-input);
     border-color: var(--app-border);
     color: var(--text-primary);
+    backdrop-filter: blur(20px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .app-input-shell:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(47, 125, 90, 0.12);
+    border-color: rgba(79, 140, 255, 0.72);
+    box-shadow:
+      0 0 0 4px rgba(79, 140, 255, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .app-input {
@@ -195,7 +571,7 @@ button {
   }
 
   .app-accent-text {
-    color: var(--accent);
+    color: var(--accent-strong);
   }
 
   .app-success-text {
@@ -212,28 +588,41 @@ button {
   }
 
   .app-accent-button {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
     color: var(--text-inverse);
-    box-shadow: 0 14px 30px rgba(47, 125, 90, 0.22);
+    box-shadow: var(--shadow-glow);
   }
 
   .app-accent-button:hover {
-    background: var(--accent-strong);
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  .app-accent-button:active {
+    transform: translateY(0);
   }
 
   .app-ghost-button {
     border-color: var(--app-border);
+    background: rgba(255, 255, 255, 0.035);
     color: var(--text-secondary);
+    backdrop-filter: blur(16px);
   }
 
   .app-ghost-button:hover {
+    border-color: rgba(79, 140, 255, 0.38);
     background: var(--app-hover);
     color: var(--text-primary);
+    transform: translateY(-1px);
   }
 
   .app-selected {
-    background: var(--accent-soft);
-    color: var(--accent-strong);
+    border: 1px solid rgba(79, 140, 255, 0.24);
+    background:
+      linear-gradient(135deg, rgba(79, 140, 255, 0.18), rgba(124, 92, 255, 0.14)),
+      var(--app-soft);
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .app-selected-muted {
@@ -241,24 +630,29 @@ button {
   }
 
   .app-unread {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
     color: var(--text-inverse);
+    box-shadow: 0 8px 18px rgba(79, 140, 255, 0.28);
   }
 
   .app-online-dot {
     background: var(--success);
-    border-color: var(--app-panel);
+    border-color: var(--bg-secondary);
+    box-shadow: 0 0 0 4px var(--success-soft);
   }
 
   .app-chip {
-    background: var(--accent-muted);
-    border-color: rgba(47, 125, 90, 0.2);
+    background:
+      linear-gradient(135deg, var(--accent-soft), var(--accent-muted)),
+      rgba(255, 255, 255, 0.04);
+    border-color: rgba(79, 140, 255, 0.24);
     color: var(--accent-strong);
+    backdrop-filter: blur(18px);
   }
 
   .app-own-bubble {
     background: var(--bubble-own);
-    color: var(--text-primary);
+    color: var(--text-inverse);
     box-shadow: var(--shadow-tight);
   }
 
@@ -267,6 +661,18 @@ button {
     border-color: var(--app-border-soft);
     color: var(--text-primary);
     box-shadow: var(--shadow-tight);
+    backdrop-filter: blur(18px);
+  }
+
+  .avatar-primary,
+  .avatar-work,
+  .avatar-design,
+  .avatar-team,
+  .avatar-support,
+  .avatar-neutral {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      var(--shadow-tight);
   }
 
   .avatar-primary {
@@ -291,5 +697,35 @@ button {
 
   .avatar-neutral {
     background: linear-gradient(135deg, var(--avatar-neutral-from), var(--avatar-neutral-to));
+  }
+}
+
+@media (max-width: 720px) {
+  @layer components {
+    .app-loading-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .app-loading-container {
+      min-height: 14rem;
+      border-radius: 1.25rem;
+    }
+
+    .app-loading-brand-card,
+    .app-loading-loader-card {
+      padding: 1.5rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

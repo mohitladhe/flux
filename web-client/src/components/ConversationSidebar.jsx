@@ -28,7 +28,7 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
         <div className="border-b app-border p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="grid size-11 place-items-center rounded-2xl app-accent-button">
+              <div className="grid size-11 place-items-center rounded-xl app-accent-button">
                 <LockKeyhole size={21} />
               </div>
               <div>
@@ -38,14 +38,14 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
             </div>
             <button
               type="button"
-              className="grid size-10 place-items-center rounded-2xl border app-border app-icon-button transition"
+              className="grid size-10 place-items-center rounded-xl border app-border app-icon-button transition"
               aria-label="Open settings"
             >
               <Settings size={19} />
             </button>
           </div>
 
-          <label className="mt-5 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm app-input-shell">
+          <label className="mt-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm app-input-shell">
             <Search size={18} />
             <input
               className="w-full bg-transparent outline-none app-input"
@@ -79,7 +79,7 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
                   onSelectConversation(conversation.id);
                   onClose();
                 }}
-                className={`flex w-full items-center gap-3 rounded-3xl p-3 text-left transition ${
+                className={`flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-left transition ${
                   active ? "app-selected" : "app-text hover:bg-[var(--app-hover)]"
                 }`}
               >
@@ -118,16 +118,16 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
 
         <div className="border-t app-border p-4">
           <div className="mb-3 grid grid-cols-2 gap-2">
-            <button className="flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-semibold transition app-ghost-button">
+            <button className="flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition app-ghost-button">
               <Archive size={17} />
               Archive
             </button>
-            <button className="flex items-center justify-center gap-2 rounded-2xl border py-3 text-sm font-semibold transition app-ghost-button">
+            <button className="flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition app-ghost-button">
               <Bell size={17} />
               Alerts
             </button>
           </div>
-          <div className="flex items-center gap-3 rounded-3xl app-panel-muted p-3">
+          <div className="flex items-center gap-3 rounded-2xl app-panel-muted p-3">
             <Avatar label={currentUser.avatar} gradient="avatar-neutral" online />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold app-text">{currentUser.name}</p>
