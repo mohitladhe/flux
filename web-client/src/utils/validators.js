@@ -99,3 +99,13 @@ export const validateRegisterForm = ({
     password: validatePassword(password),
   };
 };
+
+export const validateLoginForm = ({
+  email,
+  password,
+}) => {
+  return {
+    email: validateEmail(email),
+    password: validatePassword(password),
+  };
+};
