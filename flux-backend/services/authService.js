@@ -7,6 +7,62 @@ const User = require("../models/UserModel");
 const PendingUser = require("../models/PendingUserModel");
 const { sendOtpEmail } = require("./emailService");
 
+const loginUser = async (userData) => {
+  const { email, password } = userData;
+
+  if (!email || !password) {
+    const error = new Error("All fields are required.");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!validator.isEmail(email)) {
+    const error = new Error("Invalid email address.");
+    error.status = 400;
+    throw error;
+  }
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/;
+
+  if (!passwordRegex.test(password)) {
+    const error = new Error(
+      "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.",
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    const error = new Error("User does not exist.");
+    error.status = 409;
+    throw error;
+  }
+
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  if (!isMatch) {
+    const error = new Error("Invalid email or password.");
+    error.status = 401;
+    throw error;
+  }
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+    expiresIn: "7d",
+  });
+
+  return {
+    message: "User LoggedIn",
+    token,
+    loggedIn: true,
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  };
+};
+
 const registerUser = async (userData) => {
   const { username, email, password } = userData;
 
@@ -169,6 +225,7 @@ const resendOtp = async (pendingUserId) => {
 };
 
 module.exports = {
+  loginUser,
   registerUser,
   verifyUser,
   resendOtp,

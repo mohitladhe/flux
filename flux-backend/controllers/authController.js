@@ -1,6 +1,15 @@
 const authService = require("../services/authService");
 
-
+const loginUser = async (req, res) => {
+  try {
+    const result = await authService.loginUser(req.body);
+    return res.status(201).json(result);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
 
 const registerUser = async (req, res) => {
   try {
@@ -12,7 +21,6 @@ const registerUser = async (req, res) => {
     });
   }
 };
-
 
 const verifyUser = async (req, res) => {
   try {
@@ -40,7 +48,7 @@ const verifyToken = async (req, res) => {
   try {
     return res.status(200).json({
       loggedIn: true,
-      user: req.user
+      user: req.user,
     });
   } catch (error) {
     return res.status(error.status || 500).json({
@@ -49,4 +57,4 @@ const verifyToken = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyUser, resendOtp, verifyToken };
+module.exports = { loginUser, registerUser, verifyUser, resendOtp, verifyToken };
