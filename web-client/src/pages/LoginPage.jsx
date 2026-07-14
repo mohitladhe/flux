@@ -1,34 +1,94 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LockKeyhole, Mail, MessageCircle, Eye, EyeOff } from "lucide-react";
-import { loginUser } from "../services/authService";
+import {
+  LockKeyhole,
+  Mail,
+  MessageCircle,
+  Eye,
+  EyeOff,
+  Info,
+} from "lucide-react";
+import { loginUser, verifyToken } from "../services/authService";
+import { validateLoginForm } from "../utils/validators";
 
-export function LoginPage({ onAuthenticated }) {
+export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
+  const [formSubmitError, setFormSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    (async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+
+      try {
+        const data = await verifyToken();
+        console.log(data);
+        if (data.loggedIn) {
+          navigate("/chat", {
+            replace: true,
+          });
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message;
+        console.log(errorMessage);
+        localStorage.removeItem("token");
+        navigate("/");
+      }
+    })();
+  }, [navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    setLoading(true);
+    setIsSubmitting(true);
+    setFormSubmitError("");
+    setErrors({
+      email: "",
+      password: "",
+    });
 
     try {
-      const data = await loginUser({
+      const validateErrors = validateLoginForm({
         email,
         password,
       });
 
-      console.log(data);
+      setErrors(validateErrors);
 
-      onAuthenticated(data);
+      if (validateErrors.email || validateErrors.password) {
+        setFormSubmitError("");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const data = await loginUser({
+        email,
+        password,
+      });
+      console.log(data);
+      if (data.loggedIn) {
+        localStorage.setItem("token", data.token);
+        navigate("/chat", {
+          replace: true,
+        });
+      }
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
+      setFormSubmitError(errorMessage);
       console.error(error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -81,11 +141,15 @@ export function LoginPage({ onAuthenticated }) {
             <form className="grid gap-4" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm font-semibold app-text">
                 Email
-                <span className="flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell">
+                <span
+                  className={` flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell ${
+                    errors.email ? "border-red-500" : ""
+                  }`}
+                >
                   <Mail size={18} className="app-faint" />
                   <input
                     type="email"
-                    disabled={loading}
+                    disabled={isSubmitting}
                     required
                     placeholder="you@example.com"
                     value={email}
@@ -93,15 +157,24 @@ export function LoginPage({ onAuthenticated }) {
                     className="w-full bg-transparent text-sm outline-none app-input"
                   />
                 </span>
+                {errors.email && (
+                  <p className="text-xs font-medium text-red-500">
+                    {errors.email}
+                  </p>
+                )}
               </label>
 
               <label className="grid gap-2 text-sm font-semibold app-text">
                 Password
-                <span className="flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell">
+                <span
+                  className={` flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
+                >
                   <LockKeyhole size={18} className="app-faint" />
                   <input
                     type={showPassword ? "text" : "password"}
-                    disabled={loading}
+                    disabled={isSubmitting}
                     required
                     minLength={6}
                     placeholder="Enter password"
@@ -111,7 +184,7 @@ export function LoginPage({ onAuthenticated }) {
                   />
                   <button
                     type="button"
-                    disabled={loading}
+                    disabled={isSubmitting}
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="app-muted hover:app-text"
                     aria-label={
@@ -121,27 +194,42 @@ export function LoginPage({ onAuthenticated }) {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </span>
+                {errors.password && (
+                  <p className="text-xs font-medium text-red-500">
+                    {errors.password}
+                  </p>
+                )}
               </label>
 
+              {formSubmitError && (
+                <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-500 bg-red-500/10 p-3 text-sm font-medium text-red-500">
+                  <Info size={18} color="ff0000" />
+                  <span>{formSubmitError}</span>
+                </div>
+              )}
+
               <div className="flex justify-end">
-                <button type="button" className="text-sm app-accent-text">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-sm app-accent-text"
+                >
                   Forgot Password?
                 </button>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className="mt-2 rounded-xl px-4 py-3 text-sm font-bold transition app-accent-button disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Logging in..." : "Log in"}
+                {isSubmitting ? "Logging in..." : "Log in"}
               </button>
             </form>
 
             <button
               type="button"
-              disabled={loading}
-              onClick={onAuthenticated}
+              disabled={isSubmitting}
               className="mt-4 flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-bold transition app-ghost-button"
             >
               <span className="grid size-6 place-items-center rounded-full app-panel text-sm font-black app-text">

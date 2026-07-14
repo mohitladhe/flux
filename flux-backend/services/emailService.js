@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const sendOtpEmail = async (email, otp) => {
+const sendRegisterEmail = async (email, otp) => {
   try {
     await resend.emails.send({
       from: "Flux <onboarding@resend.dev>",
@@ -18,4 +18,18 @@ const sendOtpEmail = async (email, otp) => {
   }
 };
 
-module.exports = { sendOtpEmail, };
+const sendPasswordResetEmail = async (email, otp) => {
+  try {
+    await resend.emails.send({
+      from: "Flux <onboarding@resend.dev>",
+      to: email,
+      subject: "Reset your password.",
+      html: passwordResetEmail(otp),
+    });
+  } catch (error) {
+    console.error("Failed to send OTP:", error);
+    throw error;
+  }
+};
+
+module.exports = { sendRegisterEmail, sendPasswordResetEmail };

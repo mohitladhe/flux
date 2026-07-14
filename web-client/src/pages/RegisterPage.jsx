@@ -9,7 +9,17 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  Info,
 } from "lucide-react";
+import {
+  validateUsername,
+  validateEmail,
+  validatePassword,
+  validateRegisterForm,
+  getPasswordChecks,
+} from "../utils/validators";
+import { LoadingPage } from "../components/LoadingPage";
+import { registerUser } from "../services/authService";
 
 export function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -24,155 +34,245 @@ export function RegisterPage() {
     password: "",
   });
 
+  const navigate = useNavigate();
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFormSubmitError("");
+    setErrors({
+      username: "",
+      email: "",
+      password: "",
+    });
+
+    try {
+      const validationErrors = validateRegisterForm({
+        username,
+        email,
+        password,
+      });
+
+      setErrors(validationErrors);
+
+      if (
+        validationErrors.username ||
+        validationErrors.email ||
+        validationErrors.password
+      ) {
+        setFormSubmitError("");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const data = await registerUser({
+        username,
+        email,
+        password,
+      });
+
+      if (data) {
+        navigate("/verify", {
+          state: {
+            pendingUserId: data.pendingUserId,
+            email,
+          },
+        });
+      }
+
+      console.log(data);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again.";
+      setFormSubmitError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <main className="app-auth-background grid min-h-dvh place-items-center px-4 py-8 sm:py-10">
-      <section className="grid w-full max-w-5xl overflow-hidden rounded-3xl border app-border app-card-strong lg:grid-cols-[1fr_1.08fr]">
-        <div className="app-panel-muted hidden min-h-152 flex-col justify-between overflow-hidden p-8 lg:flex">
-          <div>
-            <div className="grid size-14 place-items-center rounded-xl app-accent-button">
-              <MessageCircle size={26} />
-            </div>
-            <h1 className="mt-8 max-w-sm text-4xl font-bold leading-tight app-text">
-              Everyday conversations, kept private.
-            </h1>
-            <p className="mt-4 max-w-sm text-sm leading-6 app-muted">
-              Flux keeps the interface calm and familiar while preserving
-              encrypted rooms, verified devices, and private attachments.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {[
-              ["Clean inbox", "Start with conversations, not clutter."],
-              [
-                "Verified sessions",
-                "Trust signals are visible when they matter.",
-              ],
-              ["Simple theme", "Change app colors from one place in CSS."],
-            ].map(([title, detail]) => (
-              <div key={title} className="rounded-xl border app-card p-4">
-                <p className="text-sm font-bold app-text">{title}</p>
-                <p className="mt-1 text-xs leading-5 app-muted">{detail}</p>
+    <>
+      {isSubmitting && <LoadingPage />}
+      <main className="app-auth-background grid min-h-dvh place-items-center px-4 py-8 sm:py-10">
+        <section className="grid w-full max-w-5xl overflow-hidden rounded-3xl border app-border app-card-strong lg:grid-cols-[1fr_1.08fr]">
+          <div className="app-panel-muted hidden min-h-152 flex-col justify-between overflow-hidden p-8 lg:flex">
+            <div>
+              <div className="grid size-14 place-items-center rounded-xl app-accent-button">
+                <MessageCircle size={26} />
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="app-panel p-5 sm:p-8">
-          <div className="mx-auto flex min-h-136 w-full max-w-md flex-col justify-center">
-            <div className="mb-8">
-              <p className="text-sm font-bold app-accent-text">
-                Flux Messenger
-              </p>
-              <h2 className="mt-2 text-3xl font-bold app-text">
-                Create your account
-              </h2>
-              <p className="mt-3 text-sm leading-6 app-muted">
-                Register with your email and password. OTP verification comes
-                next.
+              <h1 className="mt-8 max-w-sm text-4xl font-bold leading-tight app-text">
+                Everyday conversations, kept private.
+              </h1>
+              <p className="mt-4 max-w-sm text-sm leading-6 app-muted">
+                Flux keeps the interface calm and familiar while preserving
+                encrypted rooms, verified devices, and private attachments.
               </p>
             </div>
 
-            <form className="grid gap-4" onSubmit={handleSubmit}>
-              <label className="grid gap-2 text-sm font-semibold app-text">
-                Username
-                <span className="flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell">
-                  <User size={18} className="app-faint" />
-                  <input
-                    type="text"
-                    required
-                    disabled={isSubmitting}
-                    placeholder="jasonmathews2"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-transparent text-sm outline-none app-input"
-                  />
-                </span>
-              </label>
-
-              <label className="grid gap-2 text-sm font-semibold app-text">
-                Email
-                <span className="flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell">
-                  <Mail size={18} className="app-faint" />
-                  <input
-                    type="email"
-                    required
-                    disabled={isSubmitting}
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-transparent text-sm outline-none app-input"
-                  />
-                </span>
-              </label>
-
-              <label className="grid gap-2 text-sm font-semibold app-text">
-                Password
-                <span className="flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell">
-                  <LockKeyhole size={18} className="app-faint" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    disabled={isSubmitting}
-                    minLength={6}
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-transparent text-sm outline-none app-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="app-muted hover:app-text"
-                    aria-label={
-                      showPassword ? "Hide Password" : "Show Password"
-                    }
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </span>
-              </label>
-
-              {formSubmitError && (
-                <div className="mb-4 rounded-xl border border-red-500 bg-red-500/10 p-3 text-sm font-medium text-red-500">
-                  {formSubmitError}
+            <div className="grid gap-3">
+              {[
+                ["Clean inbox", "Start with conversations, not clutter."],
+                [
+                  "Verified sessions",
+                  "Trust signals are visible when they matter.",
+                ],
+                ["Simple theme", "Change app colors from one place in CSS."],
+              ].map(([title, detail]) => (
+                <div key={title} className="rounded-xl border app-card p-4">
+                  <p className="text-sm font-bold app-text">{title}</p>
+                  <p className="mt-1 text-xs leading-5 app-muted">{detail}</p>
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="mt-2 rounded-xl px-4 py-3 text-sm font-bold transition app-accent-button"
-              >
-                {isSubmitting ? "Continuing..." : "Continue to OTP"}
-              </button>
-            </form>
+          <div className="app-panel p-5 sm:p-8">
+            <div className="mx-auto flex min-h-136 w-full max-w-md flex-col justify-center">
+              <div className="mb-8">
+                <p className="text-sm font-bold app-accent-text">
+                  Flux Messenger
+                </p>
+                <h2 className="mt-2 text-3xl font-bold app-text">
+                  Create your account
+                </h2>
+                <p className="mt-3 text-sm leading-6 app-muted">
+                  Register with your email and password. OTP verification comes
+                  next.
+                </p>
+              </div>
 
-            <button
-              type="button"
-              disabled={isSubmitting}
-              className="mt-4 flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-bold transition app-ghost-button"
-            >
-              <span className="grid size-6 place-items-center rounded-full app-panel text-sm font-black app-text">
-                G
-              </span>
-              Continue with Google
-            </button>
+              <form className="grid gap-4" onSubmit={handleSubmit}>
+                <label className="grid gap-2 text-sm font-semibold app-text">
+                  Username
+                  <span
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell ${
+                      errors.username ? "border-red-500" : ""
+                    }`}
+                  >
+                    <User size={18} className="app-faint" />
+                    <input
+                      type="text"
+                      required
+                      disabled={isSubmitting}
+                      placeholder="jasonmathews2"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full bg-transparent text-sm outline-none app-input"
+                    />
+                  </span>
+                  {errors.username && (
+                    <p className="text-xs font-medium text-red-500">
+                      {errors.username}
+                    </p>
+                  )}
+                </label>
 
-            <div className="mt-8 text-center text-sm app-muted">
-              Already have an account?
+                <label className="grid gap-2 text-sm font-semibold app-text">
+                  Email
+                  <span
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell ${
+                      errors.email ? "border-red-500" : ""
+                    }`}
+                  >
+                    <Mail size={18} className="app-faint" />
+                    <input
+                      type="email"
+                      required
+                      disabled={isSubmitting}
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-transparent text-sm outline-none app-input"
+                    />
+                  </span>
+                  {errors.email && (
+                    <p className="text-xs font-medium text-red-500">
+                      {errors.email}
+                    </p>
+                  )}
+                </label>
+
+                <label className="grid gap-2 text-sm font-semibold app-text">
+                  Password
+                  <span
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 app-input-shell ${
+                      errors.password ? "border-red-500" : ""
+                    }`}
+                  >
+                    <LockKeyhole size={18} className="app-faint" />
+
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      disabled={isSubmitting}
+                      minLength={6}
+                      placeholder="Enter password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-transparent text-sm outline-none app-input"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="app-muted hover:app-text"
+                      aria-label={
+                        showPassword ? "Hide Password" : "Show Password"
+                      }
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </span>
+                  {errors.password && (
+                    <p className="text-xs font-medium text-red-500">
+                      {errors.password}
+                    </p>
+                  )}
+                </label>
+
+                {formSubmitError && (
+                  <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-500 bg-red-500/10 p-3 text-sm font-medium text-red-500">
+                    <Info size={18} color="ff0000" />
+                    <span>{formSubmitError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="mt-2 rounded-xl px-4 py-3 text-sm font-bold transition app-accent-button"
+                >
+                  {isSubmitting ? "Continuing..." : "Continue to OTP"}
+                </button>
+              </form>
+
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => navigate("/")}
-                className="font-bold app-accent-text"
+                className="mt-4 flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-bold transition app-ghost-button"
               >
-                Log in
+                <span className="grid size-6 place-items-center rounded-full app-panel text-sm font-black app-text">
+                  G
+                </span>
+                Continue with Google
               </button>
+
+              <div className="mt-8 text-center text-sm app-muted">
+                Already have an account?
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => navigate("/")}
+                  className="font-bold app-accent-text"
+                >
+                  Log in
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }
