@@ -358,7 +358,7 @@ module.exports = {
   loginUser,
   registerUser,
   verifyUser,
-  resendOtp,
+  resendOtp,  
   requestPasswordReset,
   verifyPasswordReset,
   setNewPassword,

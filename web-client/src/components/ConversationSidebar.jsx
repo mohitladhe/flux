@@ -1,9 +1,25 @@
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Archive, Bell, LockKeyhole, Plus, Search, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Archive,
+  Plus,
+  Search,
+  Settings,
+} from "lucide-react";
 import { Avatar } from "./Avatar";
+import { NewChatOverlay } from "./NewChatOverlay";
 import { conversations, currentUser } from "../data/messaging";
 
-export function ConversationSidebar({ activeId, onSelectConversation, open, onClose }) {
+export function ConversationSidebar({
+  activeId,
+  onSelectConversation,
+  open,
+  onClose,
+}) {
+  const navigate = useNavigate();
+  const [newChatOpen, setNewChatOpen] = useState(false);
+
   return (
     <>
       <AnimatePresence>
@@ -28,12 +44,18 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
         <div className="border-b app-border p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="grid size-11 place-items-center rounded-xl app-accent-button">
-                <LockKeyhole size={21} />
+              <div className="grid size-11 place-items-center rounded-xl">
+                <img
+                  src="/flux_logo.png"
+                  alt="Flux Logo"
+                  className="w-full h-full"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold app-text">Flux</h1>
-                <p className="text-xs font-medium app-muted">Encrypted messenger</p>
+                <p className="text-xs font-medium app-muted">
+                  Encrypted messenger
+                </p>
               </div>
             </div>
             <button
@@ -56,9 +78,12 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
         </div>
 
         <div className="flex items-center justify-between px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] app-faint">Inbox</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] app-faint">
+            Inbox
+          </p>
           <button
             type="button"
+            onClick={() => setNewChatOpen(true)}
             className="grid size-9 place-items-center rounded-xl transition app-accent-button"
             aria-label="Start new chat"
           >
@@ -80,7 +105,9 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
                   onClose();
                 }}
                 className={`flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-left transition ${
-                  active ? "app-selected" : "app-text hover:bg-[var(--app-hover)]"
+                  active
+                    ? "app-selected"
+                    : "app-text hover:bg-[var(--app-hover)]"
                 }`}
               >
                 <Avatar
@@ -90,14 +117,20 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-bold">{conversation.name}</p>
-                    <span className={`text-xs ${active ? "app-selected-muted" : "app-faint"}`}>
+                    <p className="truncate text-sm font-bold">
+                      {conversation.name}
+                    </p>
+                    <span
+                      className={`text-xs ${active ? "app-selected-muted" : "app-faint"}`}
+                    >
                       {conversation.time}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <Icon size={14} className="shrink-0" />
-                    <p className={`truncate text-xs ${active ? "app-selected-muted" : "app-muted"}`}>
+                    <p
+                      className={`truncate text-xs ${active ? "app-selected-muted" : "app-muted"}`}
+                    >
                       {conversation.preview}
                     </p>
                   </div>
@@ -122,20 +155,38 @@ export function ConversationSidebar({ activeId, onSelectConversation, open, onCl
               <Archive size={17} />
               Archive
             </button>
-            <button className="flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition app-ghost-button">
-              <Bell size={17} />
-              Alerts
+            <button
+              type="button"
+              onClick={() => setNewChatOpen(true)}
+              className="flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition app-ghost-button"
+            >
+              <Plus size={17} />
+              New Chat
             </button>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl app-panel-muted p-3">
-            <Avatar label={currentUser.avatar} gradient="avatar-neutral" online />
+          <div
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-3 rounded-2xl app-panel-muted p-3 transition app-ghost-button cursor-pointer"
+          >
+            <Avatar
+              label={currentUser.avatar}
+              gradient="avatar-neutral"
+              online
+            />
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold app-text">{currentUser.name}</p>
+              <p className="truncate text-sm font-bold app-text">
+                {currentUser.name}
+              </p>
               <p className="text-xs app-success-text">{currentUser.status}</p>
             </div>
           </div>
         </div>
       </aside>
+
+      <NewChatOverlay
+        open={newChatOpen}
+        onClose={() => setNewChatOpen(false)}
+      />
     </>
   );
 }

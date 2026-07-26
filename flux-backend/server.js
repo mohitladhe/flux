@@ -6,6 +6,8 @@ const User = require("./models/UserModel");
 const connectDB = require("./config/db");
 const PendingUser = require("./models/PendingUserModel");
 const authRoutes = require("./routes/authRoutes")
+const userRoutes = require("./routes/userRoutes");
+const conversationRoutes = require("./routes/conversationRoutes");
 
 app.use(express.json());
 
@@ -46,3 +48,5 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/conversations", conversationRoutes);
