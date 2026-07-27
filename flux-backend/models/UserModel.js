@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema(
     name: {
       type: String,
       required: false,
-      trim: true,
+      default: "",
     },
     avatar: {
       type: String,

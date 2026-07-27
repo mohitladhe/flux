@@ -24,7 +24,7 @@ export function LoginPage() {
   const [formSubmitError, setFormSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuthStore();
+  const setUser = useAuthStore((state) => state.setUser);
 
   // useEffect(() => {
   //   (async () => {

@@ -38,4 +38,17 @@ const createConversation = async (participantId, userId) => {
   return conversation;
 };
 
-module.exports = { createConversation };
+const getConversations = async (userId) => {
+  const conversations = await Conversation.find({
+    participants: userId,
+  })
+    .populate({
+      path: "participants",
+      select: "username name avatar isOnline",
+    })
+    .sort({ updatedAt: -1 });
+
+  return conversations;
+};
+
+module.exports = { createConversation, getConversations };

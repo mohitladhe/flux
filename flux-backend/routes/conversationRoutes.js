@@ -5,5 +5,6 @@ const { createConversation, getConversations } = require("../controllers/convers
 const requireAuth = require("../middlewares/requireAuthMiddleware");
 
 router.post("/create", requireAuth, createConversation);
+router.get("/", requireAuth, getConversations);
 
 module.exports = router;

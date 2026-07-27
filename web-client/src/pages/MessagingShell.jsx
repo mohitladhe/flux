@@ -5,25 +5,28 @@ import { DetailsPanel } from "../components/DetailsPanel";
 import { EmptyChatState } from "../components/EmptyChatState";
 import { conversations } from "../data/messaging";
 import { LoadingPage } from "../components/LoadingPage";
+import { getConversations } from "../services/conversationService";
+import { useChatStore } from "../store/chatStore";
 
 export function MessagingShell() {
   const [activeId, setActiveId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const setConversationList = useChatStore(
+    (state) => state.setConversationList,
+  );
 
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoading(true);
 
+        const conversations = await getConversations();
+        setConversationList(conversations.data);
+        console.log(conversations);
         // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Later:
-        // const response = await axios.get("/api/conversations");
-        // setConversations(response.data);
-
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (err) {
         console.error(err);
       } finally {
@@ -34,7 +37,11 @@ export function MessagingShell() {
     fetchConversations();
   }, []);
 
-  const selectedConversation = conversations.find((conversation) => conversation.id === activeId);
+  // const conversationList = useChatStore((state) => state.conversationList);
+
+  const selectedConversation = conversations.find(
+    (conversation) => conversation.id === activeId,
+  );
 
   const handleSelectConversation = (conversationId) => {
     setActiveId(conversationId);
@@ -65,7 +72,7 @@ export function MessagingShell() {
       ) : (
         <EmptyChatState onOpenSidebar={() => setSidebarOpen(true)} />
       )}
-      {loading && <LoadingPage/>}
+      {loading && <LoadingPage />}
     </div>
   );
 }

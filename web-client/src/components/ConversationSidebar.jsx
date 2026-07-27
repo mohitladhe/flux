@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  Archive,
-  Plus,
-  Search,
-  Settings,
-} from "lucide-react";
+import { Archive, Plus, Search, Settings } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { NewChatOverlay } from "./NewChatOverlay";
 import { conversations, currentUser } from "../data/messaging";
+import { useAuthStore } from "../store/authStore";
+import { useChatStore } from "../store/chatStore";
+import { formatConversationTime } from "../utils/formatConversationTime";
 
 export function ConversationSidebar({
   activeId,
@@ -19,6 +17,8 @@ export function ConversationSidebar({
 }) {
   const navigate = useNavigate();
   const [newChatOpen, setNewChatOpen] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const conversationList = useChatStore((state) => state.conversationList);
 
   return (
     <>
@@ -92,16 +92,18 @@ export function ConversationSidebar({
         </div>
 
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-          {conversations.map((conversation) => {
-            const Icon = conversation.icon;
-            const active = conversation.id === activeId;
+          {conversationList.map((conversation) => {
+            const active = conversation._id === activeId;
+            const otherParticipants = conversation.participants.find(
+              (participant) => participant._id !== user._id,
+            );
 
             return (
               <button
-                key={conversation.id}
+                key={conversation._id}
                 type="button"
                 onClick={() => {
-                  onSelectConversation(conversation.id);
+                  onSelectConversation(conversation._id);
                   onClose();
                 }}
                 className={`flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-left transition ${
@@ -112,30 +114,31 @@ export function ConversationSidebar({
               >
                 <Avatar
                   label={conversation.avatar}
-                  gradient={conversation.accent}
-                  online={conversation.online}
+                  // gradient={conversation.accent}
+                  online={conversation.isOnline}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-bold">
-                      {conversation.name}
+                      {otherParticipants.name
+                        ? otherParticipants?.name
+                        : "@" + otherParticipants?.username}
                     </p>
                     <span
                       className={`text-xs ${active ? "app-selected-muted" : "app-faint"}`}
                     >
-                      {conversation.time}
+                      {formatConversationTime(conversation.updatedAt)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <Icon size={14} className="shrink-0" />
                     <p
                       className={`truncate text-xs ${active ? "app-selected-muted" : "app-muted"}`}
                     >
-                      {conversation.preview}
+                      {conversation.lastMessage}
                     </p>
                   </div>
                 </div>
-                {conversation.unread > 0 && (
+                {/* {conversation.unread > 0 && (
                   <span
                     className={`grid size-6 place-items-center rounded-full text-xs font-bold ${
                       active ? "app-accent-button" : "app-unread"
@@ -143,7 +146,7 @@ export function ConversationSidebar({
                   >
                     {conversation.unread}
                   </span>
-                )}
+                )} */}
               </button>
             );
           })}
