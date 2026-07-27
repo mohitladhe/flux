@@ -1,6 +1,6 @@
+require("dotenv").config();
 const { Resend } = require("resend");
 const verificationEmail = require("../templates/verificationEmail");
-require("dotenv").config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

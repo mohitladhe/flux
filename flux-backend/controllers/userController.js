@@ -1,14 +1,13 @@
 const userService = require("../services/userService");
+const asyncHandler = require("../utils/asyncHandler");
+const HTTP_STATUS = require("../constants/httpStatus");
 
-const searchUser = async (req, res) => {
-  try {
-    const result = await userService.searchUser(req.query.q, req.user._id);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const searchUser = asyncHandler(async (req, res) => {
+  const result = await userService.searchUser(req.query.q, req.user._id);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
 module.exports = { searchUser };

@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const ApiError = require("../utils/ApiError");
+const HTTP_STATUS = require("../constants/httpStatus");
 
 const User = require("../models/UserModel");
 const PendingUser = require("../models/PendingUserModel");
@@ -12,40 +14,31 @@ const loginUser = async (userData) => {
   const { email, password } = userData;
 
   if (!email || !password) {
-    const error = new Error("All fields are required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "All fields are required.");
   }
 
   if (!validator.isEmail(email)) {
-    const error = new Error("Invalid email address.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Invalid email address.");
   }
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/;
 
   if (!passwordRegex.test(password)) {
-    const error = new Error(
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
       "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.",
     );
-    error.status = 400;
-    throw error;
   }
 
   const user = await User.findOne({ email });
   if (!user) {
-    const error = new Error("User does not exist.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid email or password.");
   }
 
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) {
-    const error = new Error("Invalid email or password.");
-    error.status = 401;
-    throw error;
+    throw new ApiError(HTTP_STATUS.UNAUTHORIZED, "Invalid email or password.");
   }
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
@@ -69,23 +62,20 @@ const registerUser = async (userData) => {
 
   // Validate required fields
   if (!username || !email || !password) {
-    const error = new Error("All fields are required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "All fields are required.");
   }
 
   // Username validation
   if (username.trim().length < 3) {
-    const error = new Error("Username must be at least 3 characters long.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "Username must be at least 3 characters long.",
+    );
   }
 
   // Email validation
   if (!validator.isEmail(email)) {
-    const error = new Error("Invalid email address.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Invalid email address.");
   }
 
   // Password validation
@@ -93,29 +83,24 @@ const registerUser = async (userData) => {
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/;
 
   if (!passwordRegex.test(password)) {
-    const error = new Error(
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
       "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.",
     );
-    error.status = 400;
-    throw error;
   }
 
   // Check existing username
   const existingUsername = await User.findOne({ username });
 
   if (existingUsername) {
-    const error = new Error("Username already exists.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.CONFLICT, "Username already exists.");
   }
 
   // Check existing user
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
-    const error = new Error("User already exists.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.CONFLICT, "Email already exists.");
   }
 
   // Remove previous pending registration
@@ -154,24 +139,18 @@ const verifyUser = async (verificationData) => {
   const pendingUser = await PendingUser.findById(pendingUserId);
 
   if (!pendingUser) {
-    const error = new Error("Registration not found.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Registration not found.");
   }
 
   const savedOtp = pendingUser.otp;
   const expiresAt = pendingUser.expiresAt;
 
   if (expiresAt < new Date()) {
-    const error = new Error("OTP has expired.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "OTP has expired.");
   }
 
   if (savedOtp !== otp.toString()) {
-    const error = new Error("Incorrect OTP.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Incorrect OTP.");
   }
 
   const user = await User.create({
@@ -202,12 +181,10 @@ const verifyUser = async (verificationData) => {
 
 const resendOtp = async (pendingUserId) => {
   if (!pendingUserId) {
-    const error = new Error("Registration Not Found.");
-    error.status = 404;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Registration not found.");
   }
 
-  const pendingUser = await PendingUser.findById({ pendingUserId });
+  const pendingUser = await PendingUser.findById( pendingUserId );
   const email = pendingUser.email;
 
   const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -228,15 +205,11 @@ const resendOtp = async (pendingUserId) => {
 const requestPasswordReset = async (userData) => {
   const { email } = userData;
   if (!email) {
-    const error = new Error("Email is required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Email is required.");
   }
 
   if (!validator.isEmail(email)) {
-    const error = new Error("Invalid email address.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Invalid email address");
   }
   // Generate OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -247,9 +220,10 @@ const requestPasswordReset = async (userData) => {
 
   const existingUser = await User.findOne({ email });
   if (!existingUser) {
-    const error = new Error("No account found with this email address.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.NOT_FOUND,
+      "No account found with this email address.",
+    );
   }
 
   const passwordReset = await PasswordReset.create({
@@ -269,16 +243,15 @@ const requestPasswordReset = async (userData) => {
 const verifyPasswordReset = async (userData) => {
   const { resetRequestId, otp } = userData;
   if (!resetRequestId || !otp) {
-    const error = new Error("OTP is required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "OTP is required.");
   }
 
   const request = await PasswordReset.findById(resetRequestId);
   if (!request) {
-    const error = new Error("Password reset request not found.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.NOT_FOUND,
+      "Password reset request not found.",
+    );
   }
 
   const expiresAt = request.expiresAt;
@@ -287,15 +260,14 @@ const verifyPasswordReset = async (userData) => {
     await PasswordReset.findByIdAndDelete({
       _id: request._id,
     });
-    const error = new Error("OTP has expired.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "OTP has expired.");
   }
 
   if (request.otp !== String(otp)) {
-    const error = new Error("The verification code is incorrect.");
-    error.status = 409;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "The verification code is incorrect.",
+    );
   }
 
   request.verified = true;
@@ -310,36 +282,32 @@ const verifyPasswordReset = async (userData) => {
 const setNewPassword = async (userData) => {
   const { resetRequestId, password } = userData;
   if (!resetRequestId || !password) {
-    const error = new Error("A new password is required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "A new password is required.");
   }
   // Password validation
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/;
 
   if (!passwordRegex.test(password)) {
-    const error = new Error(
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
       "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character.",
     );
-    error.status = 400;
-    throw error;
   }
 
   const passwordReset = await PasswordReset.findById(resetRequestId);
   if (!passwordReset || !passwordReset.verified) {
-    const error = new Error("Password reset request not found.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.NOT_FOUND,
+      "Password reset request not found.",
+    );
   }
 
   const email = passwordReset.email;
 
   const user = await User.findOne({ email });
   if (!user) {
-    const error = new Error("No account found.");
-    error.status = 404;
-    throw error;
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "No account found.");
   }
   const passwordHash = await bcrypt.hash(password, 10);
   user.passwordHash = passwordHash;
@@ -358,7 +326,7 @@ module.exports = {
   loginUser,
   registerUser,
   verifyUser,
-  resendOtp,  
+  resendOtp,
   requestPasswordReset,
   verifyPasswordReset,
   setNewPassword,

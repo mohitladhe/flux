@@ -1,12 +1,15 @@
 const User = require("../models/UserModel");
+const ApiError = require("../utils/ApiError");
+const HTTP_STATUS = require("../constants/httpStatus");
 
 const searchUser = async (search, currentUserId) => {
   search = search.trim();
 
   if (!search) {
-    const error = new Error("Please enter a name or username.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "Please enter a name or username.",
+    );
   }
 
   return await User.find({

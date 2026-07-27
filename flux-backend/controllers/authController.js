@@ -1,94 +1,69 @@
 const authService = require("../services/authService");
+const asyncHandler = require("../utils/asyncHandler");
+const HTTP_STATUS = require("../constants/httpStatus");
 
-const loginUser = async (req, res) => {
-  try {
-    const result = await authService.loginUser(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const loginUser = asyncHandler(async (req, res) => {
+  const result = await authService.loginUser(req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
-const registerUser = async (req, res) => {
-  try {
-    const result = await authService.registerUser(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const registerUser = asyncHandler(async (req, res) => {
+  const result = await authService.registerUser(req.body);
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    data: result,
+  });
+});
 
-const verifyUser = async (req, res) => {
-  try {
-    const result = await authService.verifyUser(req.body);
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const verifyUser = asyncHandler(async (req, res) => {
+  const result = await authService.verifyUser(req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
-const resendOtp = async (req, res) => {
-  try {
-    const result = await authService.resendOtp(req.body);
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const resendOtp = asyncHandler(async (req, res) => {
+  const result = await authService.resendOtp(req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
-const verifyToken = async (req, res) => {
-  try {
-    return res.status(200).json({
-      loggedIn: true,
-      user: req.user,
-    });
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const verifyToken = asyncHandler(async (req, res) => {
+  res.status(HTTP_STATUS.OK).json({
+    loggedIn: true,
+    user: req.user,
+  });
+});
 
-const requestPasswordReset = async (req, res) => {
-  try {
-    const result = await authService.requestPasswordReset(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const requestPasswordReset = asyncHandler(async (req, res) => {
+  const result = await authService.requestPasswordReset(req.body);
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    data: result,
+  });
+});
 
-const verifyPasswordReset = async (req, res) => {
-  try {
-    const result = await authService.verifyPasswordReset(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const verifyPasswordReset = asyncHandler(async (req, res) => {
+  const result = await authService.verifyPasswordReset(req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
-const setNewPassword = async (req, res) => {
-  try {
-    const result = await authService.setNewPassword(req.body);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const setNewPassword = asyncHandler(async (req, res) => {
+  const result = await authService.setNewPassword(req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
 
 module.exports = {
   loginUser,

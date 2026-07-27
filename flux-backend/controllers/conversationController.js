@@ -1,14 +1,18 @@
+const HTTP_STATUS = require("../constants/httpStatus");
 const conversationService = require("../services/conversationService");
+const asyncHandler = require("../utils/asyncHandler");
 
-const createConversation = async (req, res) => {
-  try {
-    const result = await conversationService.createConversation(req.body, req.user._id);
-    return res.status(201).json(result);
-  } catch (error) {
-    return res.status(error.status || 500).json({
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
+const createConversation = asyncHandler(async (req, res) => {
+  const { participantId } = req.body;
+
+  const result = await conversationService.createConversation(
+    participantId,
+    req.user._id,
+  );
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    data: result,
+  });
+});
 
 module.exports = { createConversation };

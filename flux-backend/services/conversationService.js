@@ -1,26 +1,24 @@
 const User = require("../models/UserModel");
 const Conversation = require("../models/ConversationModel");
+const HTTP_STATUS = require("../constants/httpStatus");
+const ApiError = require("../utils/ApiError");
 
-const createConversation = async (body, userId) => {
-  const { participantId } = body;
+const createConversation = async (participantId, userId) => {
   if (!participantId) {
-    const error = new Error("Participant is required.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Participant is required.");
   }
 
   const participant = await User.findById(participantId);
 
   if (!participant) {
-    const error = new Error("User not found.");
-    error.status = 404;
-    throw error;
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "User not found.");
   }
 
   if (participantId.toString() === userId.toString()) {
-    const error = new Error("You cannot create a conversation with yourself.");
-    error.status = 400;
-    throw error;
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "You cannot create a conversation with yourself.",
+    );
   }
 
   const existingConversation = await Conversation.findOne({
