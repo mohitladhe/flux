@@ -9,21 +9,24 @@ import { getConversations } from "../services/conversationService";
 import { useChatStore } from "../store/chatStore";
 
 export function MessagingShell() {
-  const [activeId, setActiveId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const setConversationList = useChatStore(
     (state) => state.setConversationList,
   );
+  const activeConversation = useChatStore((state) => state.activeConversation);
+  const setActiveConversation = useChatStore(
+    (state) => state.setActiveConversation,
+  );
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    (async () => {
       try {
         setLoading(true);
 
         const conversations = await getConversations();
-        setConversationList(conversations.data);
+        setConversationList(conversations);
         console.log(conversations);
         // Simulate API call
         // await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -32,39 +35,36 @@ export function MessagingShell() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchConversations();
+    })();
   }, []);
 
-  // const conversationList = useChatStore((state) => state.conversationList);
+  // const selectedConversation = conversations.find(
+  //   (conversation) => conversation.id === activeId,
+  // );
 
-  const selectedConversation = conversations.find(
-    (conversation) => conversation.id === activeId,
-  );
-
-  const handleSelectConversation = (conversationId) => {
-    setActiveId(conversationId);
+  const handleSelectConversation = (conversation) => {
+    setActiveConversation(conversation);
+    console.log(conversation);
     setDetailsOpen(false);
   };
 
   return (
     <div className="relative flex h-dvh overflow-hidden app-root">
       <ConversationSidebar
-        activeId={activeId}
         onSelectConversation={handleSelectConversation}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      {selectedConversation ? (
+      {activeConversation ? (
         <>
           <ChatWindow
-            conversation={selectedConversation}
+            conversation={activeConversation}
+            onLoading={setLoading}
             onOpenSidebar={() => setSidebarOpen(true)}
             onOpenDetails={() => setDetailsOpen(true)}
           />
           <DetailsPanel
-            conversation={selectedConversation}
+            conversation={activeConversation}
             open={detailsOpen}
             onClose={() => setDetailsOpen(false)}
           />

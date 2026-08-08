@@ -27,6 +27,7 @@ export function NewChatOverlay({ open, onClose }) {
       setIsSearching(true);
       try {
         const data = await searchUser(search);
+        console.log(data);
         setSearchResults(data);
         setHasSearched(true);
       } catch (error) {

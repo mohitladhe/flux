@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { messages } from "../data/messaging";
 
 export const useChatStore = create((set) => ({
   activeConversation: null,
@@ -19,6 +20,18 @@ export const useChatStore = create((set) => ({
     set({
       messages,
     }),
+
+  addMessage: (message) =>
+    set((state) => ({
+      messages: [...state.messages, message],
+    })),
+
+  updateMessage: (clientId, updates) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.clientId === clientId ? { ...message, ...updates } : message,
+      ),
+    })),
 
   clearChat: () =>
     set({

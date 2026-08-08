@@ -18,7 +18,10 @@ export default function AuthInitializer({ children }) {
             const data = await verifyToken();
             setUser(data.user);
         } catch (error) {
-            logout();
+            if(error.response?.status === 401) {
+                console.error(error);
+                logout();
+            }
         } finally {
             finishLoading();
         }

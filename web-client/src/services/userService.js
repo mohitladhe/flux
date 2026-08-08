@@ -6,5 +6,5 @@ export const searchUser = async (search) => {
       q: search,
     },
   });
-  return response.data;
+  return response.data.data;
 };

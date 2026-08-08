@@ -94,16 +94,13 @@ export function ConversationSidebar({
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
           {conversationList.map((conversation) => {
             const active = conversation._id === activeId;
-            const otherParticipants = conversation.participants.find(
-              (participant) => participant._id !== user._id,
-            );
 
             return (
               <button
                 key={conversation._id}
                 type="button"
                 onClick={() => {
-                  onSelectConversation(conversation._id);
+                  onSelectConversation(conversation);
                   onClose();
                 }}
                 className={`flex w-full items-center gap-3 rounded-2xl border border-transparent p-3 text-left transition ${
@@ -113,16 +110,14 @@ export function ConversationSidebar({
                 }`}
               >
                 <Avatar
-                  label={conversation.avatar}
+                  label={conversation.display.avatar}
                   // gradient={conversation.accent}
-                  online={conversation.isOnline}
+                  online={conversation.display.isOnline}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-sm font-bold">
-                      {otherParticipants.name
-                        ? otherParticipants?.name
-                        : "@" + otherParticipants?.username}
+                      {conversation.display.name}
                     </p>
                     <span
                       className={`text-xs ${active ? "app-selected-muted" : "app-faint"}`}
@@ -134,7 +129,8 @@ export function ConversationSidebar({
                     <p
                       className={`truncate text-xs ${active ? "app-selected-muted" : "app-muted"}`}
                     >
-                      {conversation.lastMessage}
+                      {conversation.type === "group" && (conversation.lastMessage?.senderName + ": ")}
+                      {conversation.lastMessage?.content}
                     </p>
                   </div>
                 </div>
