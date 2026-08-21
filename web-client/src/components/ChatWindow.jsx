@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { Menu, Phone, Search, ShieldCheck, Video } from "lucide-react";
 // import { messages } from "../data/messaging";
 import { Avatar } from "./Avatar";
@@ -17,7 +17,14 @@ export function ChatWindow({
 }) {
   const messages = useChatStore((state) => state.messages);
   const setMessages = useChatStore((state) => state.setMessages);
+  const bottomRef = useRef(null);
   console.log(conversation);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behaviour: "smooth",
+    });
+  }, [messages]);
 
   useEffect(() => {
     if (!conversation?._id) return;
@@ -31,7 +38,6 @@ export function ChatWindow({
           status: "sent",
         }));
         setMessages(formattedMessages);
-        console.log(formattedMessages);
       } catch (error) {
         console.error(error);
       } finally {
@@ -60,13 +66,13 @@ export function ChatWindow({
           >
             <div className="flex min-w-0 items-center gap-3">
               <Avatar
-                label={conversation.display.avatar}
+                label={conversation.display?.avatar}
                 // gradient={conversation.accent}
-                online={conversation.display.isOnline}
+                online={conversation.display?.isOnline}
               />
               <div className="min-w-0">
                 <h2 className="truncate text-base font-bold app-text sm:text-lg">
-                  {conversation.display.name}
+                  {conversation.display?.name}
                 </h2>
                 <div className="flex items-center gap-1 text-xs font-medium app-success-text">
                   <ShieldCheck size={13} />
@@ -90,7 +96,7 @@ export function ChatWindow({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-5">
+        <div className="mx-auto flex w-full flex-col gap-3">
           {/* <div className="mx-auto flex max-w-xl items-center gap-3 rounded-2xl border app-chip px-4 py-3 text-center text-xs font-semibold">
             <ShieldCheck size={16} className="shrink-0" />
             Key fingerprints match across every active device in this room.
@@ -111,6 +117,7 @@ export function ChatWindow({
               </Fragment>
             );
           })}
+          <div ref={bottomRef} />
         </div>
       </div>
 

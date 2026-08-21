@@ -22,13 +22,13 @@ export const formatMessageDateSeparator = (timestamp) => {
   const isSameYear = date.getFullYear() === now.getFullYear();
 
   if (isSameYear) {
-    return date.toLocaleDateString([], {
+    return date.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
     });
   }
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",

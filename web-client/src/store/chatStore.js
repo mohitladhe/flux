@@ -16,6 +16,16 @@ export const useChatStore = create((set) => ({
       conversationList: conversations,
     }),
 
+  addConversation: (conversation) =>
+    set((state) => ({
+      conversationList: [
+        conversation,
+        ...state.conversationList.filter(
+          (item) => item._id !== conversation._id,
+        ),
+      ],
+    })),
+
   setMessages: (messages) =>
     set({
       messages,

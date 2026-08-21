@@ -2,39 +2,57 @@ const mongoose = require("mongoose");
 
 const MessageSchema = new mongoose.Schema(
   {
-    conversation: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Conversation",
-        required: true,
-      },
-    ],
-    sender: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-    ],
-    content: {
-      type: String,
+    conversation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
       required: true,
     },
+
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    content: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+
     type: {
       type: String,
       enum: ["text", "image", "video", "file"],
       default: "text",
     },
-    delivered: {
+
+    // deliveredTo: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
+
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    edited: {
       type: Boolean,
       default: false,
     },
-    seen: {
+
+    deletedForEveryone: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Message", MessageSchema);

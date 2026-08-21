@@ -3,8 +3,9 @@ export const formatMessageTime = (timestamp) => {
 
   const date = new Date(timestamp);
 
-  return date.toLocaleTimeString([], {
-    hour: "numeric",
+  return date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 };

@@ -7,7 +7,8 @@ import { useChatStore } from "../store/chatStore";
 
 export function MessageBubble({ message }) {
   const user = useAuthStore((state) => state.user);
-  const isMine = message.sender === user._id;
+  const isMine = String(message.sender?._id) === String(user?._id);
+  let senderUsername = "@" + message.sender?.username;
   const formattedTime = formatMessageTime(message.createdAt);
   const activeConversation = useChatStore((state) => state.activeConversation);
   return (
@@ -18,7 +19,7 @@ export function MessageBubble({ message }) {
       // transition={{ duration: 0.35, delay: index * 0.06 }}
     >
       {!isMine && (
-        <Avatar label={message?.avatar} gradient="avatar-neutral" size="sm" />
+        <Avatar label={message.sender?.avatar} gradient="avatar-neutral" size="sm" />
       )}
 
       <div
@@ -33,7 +34,7 @@ export function MessageBubble({ message }) {
         >
           {!isMine && activeConversation.type === "group" && (
             <p className="mb-1 text-xs font-bold app-accent-text">
-              {message.sender}
+              {message.sender.name ?? senderUsername}
             </p>
           )}
           <p className="flex text-sm leading-6">{message.content}</p>

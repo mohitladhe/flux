@@ -129,7 +129,19 @@ export function ConversationSidebar({
                     <p
                       className={`truncate text-xs ${active ? "app-selected-muted" : "app-muted"}`}
                     >
-                      {conversation.type === "group" && (conversation.lastMessage?.senderName + ": ")}
+                      {
+                        conversation.type === "group" &&
+                        conversation.lastMessage?.sender.username !==
+                          user.username
+                          ? (conversation.lastMessage.sender.name ??
+                            "@" + conversation.lastMessage.sender.username) + ": "
+                          : ""
+                        // conversation.lastMessage?.senderName !== user.name
+                        //   ? conversation.lastMessage?.senderName !== user.username
+                        //     ? conversation.lastMessage?.senderName + ": "
+                        //     : ""
+                        //   : ""
+                      }
                       {conversation.lastMessage?.content}
                     </p>
                   </div>

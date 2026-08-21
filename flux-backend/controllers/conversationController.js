@@ -22,4 +22,18 @@ const getConversations = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createConversation, getConversations };
+const createGroup = asyncHandler(async (req, res) => {
+  console.log("BODY: " + req.body);
+  const { groupName, participants } = req.body;
+  const result = await conversationService.createGroup(
+    groupName,
+    participants,
+    req.user._id,
+  );
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+module.exports = { createConversation, getConversations, createGroup };
