@@ -14,13 +14,15 @@ const ConversationSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    admin: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: function () {
-        return this.type === "group";
+    admin: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: function () {
+          return this.type === "group";
+        },
       },
-    },
+    ],
     groupName: {
       type: String,
       trim: true,

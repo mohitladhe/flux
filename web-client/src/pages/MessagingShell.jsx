@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ChatWindow } from "../components/ChatWindow";
 import { ConversationSidebar } from "../components/ConversationSidebar";
 import { DetailsPanel } from "../components/DetailsPanel";
+import { GroupDetailsPanel } from "../components/GroupDetailsPanel";
 import { EmptyChatState } from "../components/EmptyChatState";
 import { conversations } from "../data/messaging";
 import { LoadingPage } from "../components/LoadingPage";
@@ -63,11 +64,19 @@ export function MessagingShell() {
             onOpenSidebar={() => setSidebarOpen(true)}
             onOpenDetails={() => setDetailsOpen(true)}
           />
-          <DetailsPanel
-            conversation={activeConversation}
-            open={detailsOpen}
-            onClose={() => setDetailsOpen(false)}
-          />
+          {activeConversation.type === "group" ? (
+            <GroupDetailsPanel
+              conversation={activeConversation}
+              open={detailsOpen}
+              onClose={() => setDetailsOpen(false)}
+            />
+          ) : (
+            <DetailsPanel
+              conversation={activeConversation}
+              open={detailsOpen}
+              onClose={() => setDetailsOpen(false)}
+            />
+          )}
         </>
       ) : (
         <EmptyChatState onOpenSidebar={() => setSidebarOpen(true)} />
