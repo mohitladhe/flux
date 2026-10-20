@@ -4,6 +4,7 @@ import { trustSignals } from "../data/messaging";
 import { Avatar } from "./Avatar";
 
 export function DetailsPanel({ conversation, open, onClose }) {
+
   return (
     <AnimatePresence>
       {open && (

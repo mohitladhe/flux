@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   LockKeyhole,
   Mail,
@@ -24,6 +24,7 @@ export function LoginPage() {
   const [formSubmitError, setFormSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const setUser = useAuthStore((state) => state.setUser);
 
   // useEffect(() => {
@@ -81,7 +82,7 @@ export function LoginPage() {
       if (data.loggedIn) {
         localStorage.setItem("token", data.token);
         setUser(data.user);
-        navigate("/chat", {
+        navigate(location.state?.from || "/chat", {
           replace: true,
         });
       }

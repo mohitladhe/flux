@@ -11,6 +11,7 @@ import { useAuthStore } from "./store/authStore";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import AuthInitializer from "./routes/AuthInitializer";
+import { GroupInvitePreviewPage } from "./pages/GroupInvitePreviewPage";
 
 function AppContent() {
   const { isLoading } = useAuthStore();
@@ -26,6 +27,7 @@ function AppContent() {
         <Route path="/verify" element={<OtpVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
+      <Route path="/group-invite/:token" element={<GroupInvitePreviewPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/chat" element={<MessagingShell />} />
         <Route path="/profile" element={<ProfilePage />} />

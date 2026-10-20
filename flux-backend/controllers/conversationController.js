@@ -36,4 +36,113 @@ const createGroup = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createConversation, getConversations, createGroup };
+const updateAdminStatus = asyncHandler(async (req, res) => {
+  const { conversationId, memberId } = req.params;
+  const { isAdmin } = req.body;
+
+  const result = await conversationService.updateAdminStatus(
+    conversationId,
+    memberId,
+    req.user._id,
+    isAdmin,
+  );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const removeMember = asyncHandler(async (req, res) => {
+  const { conversationId, memberId } = req.params;
+
+  const result = await conversationService.removeMember(
+    conversationId,
+    memberId,
+    req.user._id,
+  );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const addMember = asyncHandler(async (req, res) => {
+  const { conversationId } = req.params;
+  const { memberId } = req.body;
+
+  const result = await conversationService.addMember(
+    conversationId,
+    memberId,
+    req.user._id,
+  );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const generateGroupInvite = asyncHandler(async (req, res) => {
+  const { conversationId } = req.params;
+
+  const result = await conversationService.generateGroupInvite(
+    conversationId,
+    req.user._id,
+  );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const getGroupInvitePreview = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const result = await conversationService.getGroupInvitePreview(token);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const joinGroupByInvite = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const result = await conversationService.joinGroupByInvite(token, req.user._id);
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+const revokeGroupInvite = asyncHandler(async (req, res) => {
+  const { conversationId } = req.params;
+
+  const result = await conversationService.revokeGroupInvite(
+    conversationId,
+    req.user._id,
+  );
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result,
+  });
+});
+
+module.exports = {
+  createConversation,
+  getConversations,
+  createGroup,
+  updateAdminStatus,
+  removeMember,
+  addMember,
+  generateGroupInvite,
+  getGroupInvitePreview,
+  joinGroupByInvite,
+  revokeGroupInvite,
+};

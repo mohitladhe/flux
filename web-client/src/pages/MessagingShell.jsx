@@ -39,15 +39,30 @@ export function MessagingShell() {
     })();
   }, []);
 
+  useEffect(() => {
+    console.log("ACTIVE CONVERSATION STATE:", {
+      id: activeConversation?._id,
+      type: activeConversation?.type,
+      detailsOpen,
+    });
+  }, [activeConversation, detailsOpen]);
+
   // const selectedConversation = conversations.find(
   //   (conversation) => conversation.id === activeId,
   // );
 
   const handleSelectConversation = (conversation) => {
+    console.log("SELECTING CONVERSATION:", conversation);
+
     setActiveConversation(conversation);
-    console.log(conversation);
     setDetailsOpen(false);
   };
+
+  console.log("FLUX DETAILS DEBUG", {
+    type: activeConversation?.type,
+    detailsOpen,
+    conversationId: activeConversation?._id,
+  });
 
   return (
     <div className="relative flex h-dvh overflow-hidden app-root">
@@ -64,6 +79,7 @@ export function MessagingShell() {
             onOpenSidebar={() => setSidebarOpen(true)}
             onOpenDetails={() => setDetailsOpen(true)}
           />
+
           {activeConversation.type === "group" ? (
             <GroupDetailsPanel
               conversation={activeConversation}

@@ -26,6 +26,18 @@ export const useChatStore = create((set) => ({
       ],
     })),
 
+  updateConversation: (conversation) =>
+    set((state) => ({
+      conversationList: state.conversationList.map((item) =>
+        item._id === conversation._id ? conversation : item,
+      ),
+
+      activeConversation:
+        state.activeConversation?._id === conversation._id
+          ? conversation
+          : state.activeConversation,
+    })),
+
   setMessages: (messages) =>
     set({
       messages,

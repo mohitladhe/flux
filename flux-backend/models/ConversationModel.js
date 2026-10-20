@@ -14,7 +14,7 @@ const ConversationSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    admin: [
+    admins: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -23,6 +23,13 @@ const ConversationSchema = new mongoose.Schema(
         },
       },
     ],
+    groupCreator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: function () {
+        return this.type === "group";
+      },
+    },
     groupName: {
       type: String,
       trim: true,
@@ -32,6 +39,19 @@ const ConversationSchema = new mongoose.Schema(
     },
     groupAvatar: {
       type: String,
+      default: null,
+    },
+    inviteTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    inviteExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    inviteRevokedAt: {
+      type: Date,
       default: null,
     },
     lastMessage: {

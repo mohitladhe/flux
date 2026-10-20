@@ -74,7 +74,7 @@ const sendMessage = async (conversationId, content, userId) => {
 
   await message.populate({
     path: "sender",
-    select: "_id name username avatar"
+    select: "_id name username avatar "
   });
 
   conversation.lastMessage = message._id;

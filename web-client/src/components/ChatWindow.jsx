@@ -13,6 +13,7 @@ export function ChatWindow({
   conversation,
   onOpenSidebar,
   onOpenDetails,
+  onOpen,
   onLoading,
 }) {
   const messages = useChatStore((state) => state.messages);
@@ -29,22 +30,39 @@ export function ChatWindow({
   useEffect(() => {
     if (!conversation?._id) return;
 
-    (async () => {
+    let cancelled = false;
+
+    const loadMessages = async () => {
       try {
         onLoading(true);
-        const messages = await getMessages(conversation._id);
-        const formattedMessages = messages.map((message) => ({
+
+        const result = await getMessages(conversation._id);
+
+        if (cancelled) return;
+
+        const formattedMessages = result.map((message) => ({
           ...message,
           status: "sent",
         }));
+
         setMessages(formattedMessages);
       } catch (error) {
-        console.error(error);
+        if (!cancelled) {
+          console.error(error);
+        }
       } finally {
-        onLoading(false);
+        if (!cancelled) {
+          onLoading(false);
+        }
       }
-    })();
-  }, [conversation._id]);
+    };
+
+    loadMessages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [conversation?._id, onLoading, setMessages]);
 
   return (
     <section className="flex min-w-0 flex-1 flex-col app-chat-surface">

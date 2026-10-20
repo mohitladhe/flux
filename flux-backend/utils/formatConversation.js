@@ -30,6 +30,8 @@ const formatConversation = (conversation, userId) => {
         conversation.type === "direct" ? otherParticipant.isOnline : null,
     },
     participants: conversation.participants,
+    admins: conversation.admins,
+    groupCreator: conversation.groupCreator,
     lastMessage: conversation.lastMessage
       ? {
           content: conversation.lastMessage.content,
@@ -37,11 +39,6 @@ const formatConversation = (conversation, userId) => {
             name: conversation.lastMessage.sender.name,
             username: conversation.lastMessage.sender.username,
           },
-          // senderName:
-          //   conversation.lastMessage.sender._id.toString() === userId.toString()
-          //     ? "You"
-          //     : (conversation.lastMessage.sender.name ??
-          //       "@" + conversation.lastMessage.sender.username),
           createdAt: conversation.lastMessage.createdAt,
         }
       : null,

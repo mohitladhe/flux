@@ -20,7 +20,12 @@ export function ChatComposer() {
     const tempMessage = {
       clientId,
       _id: null,
-      sender: user._id,
+      sender: {
+        _id: user._id,
+        username: user.username,
+        name: user.name,
+        avatar: user.avatar,
+      },
       content,
       createdAt: new Date().toISOString(),
       status: "sending",
