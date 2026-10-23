@@ -24,16 +24,16 @@ const getMessages = async (conversationId, userId) => {
     );
   }
 
-  const messages = await Message.find({ conversation: conversationId })
+  const messages = await Message.find({
+    conversation: conversationId,
+  })
     .populate({
       path: "sender",
-      select: "_id name username",
+      select: "_id name username avatar",
     })
-    .sort({
-      createdAt: 1,
-    });
+    .sort({ createdAt: 1 });
 
-  return messages.map((message) => formatMessage(message));
+  return messages.map((message) => formatMessage(message)).filter(Boolean);
 };
 
 const sendMessage = async (conversationId, content, userId) => {
@@ -74,7 +74,7 @@ const sendMessage = async (conversationId, content, userId) => {
 
   await message.populate({
     path: "sender",
-    select: "_id name username avatar "
+    select: "_id name username avatar ",
   });
 
   conversation.lastMessage = message._id;

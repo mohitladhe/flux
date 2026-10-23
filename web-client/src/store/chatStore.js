@@ -1,5 +1,16 @@
+
 import { create } from "zustand";
-import { messages } from "../data/messaging";
+
+const getId = (value) => {
+  if (value == null) return null;
+
+  const id =
+    typeof value === "object"
+      ? value._id ?? value.id
+      : value;
+
+  return id == null ? null : String(id);
+};
 
 export const useChatStore = create((set) => ({
   activeConversation: null,
@@ -7,13 +18,30 @@ export const useChatStore = create((set) => ({
   messages: [],
 
   setActiveConversation: (conversation) =>
-    set({
+    set((state) => ({
       activeConversation: conversation,
-    }),
+      messages:
+        getId(state.activeConversation) === getId(conversation)
+          ? state.messages
+          : [],
+    })),
 
   setConversationList: (conversations) =>
-    set({
-      conversationList: conversations,
+    set((state) => {
+      const activeId = getId(state.activeConversation);
+      const latestActive = conversations.find(
+        (item) => getId(item) === activeId,
+      );
+
+      return {
+        conversationList: conversations,
+        activeConversation: latestActive
+          ? {
+              ...state.activeConversation,
+              ...latestActive,
+            }
+          : state.activeConversation,
+      };
     }),
 
   addConversation: (conversation) =>
@@ -21,37 +49,79 @@ export const useChatStore = create((set) => ({
       conversationList: [
         conversation,
         ...state.conversationList.filter(
-          (item) => item._id !== conversation._id,
+          (item) => getId(item) !== getId(conversation),
         ),
       ],
     })),
 
-  updateConversation: (conversation) =>
-    set((state) => ({
-      conversationList: state.conversationList.map((item) =>
-        item._id === conversation._id ? conversation : item,
-      ),
+  updateConversation: (conversation) => {
+    if (!conversation?._id) return;
 
-      activeConversation:
-        state.activeConversation?._id === conversation._id
-          ? conversation
-          : state.activeConversation,
-    })),
+    set((state) => {
+      const conversationId = getId(conversation);
+      const existing = state.conversationList.find(
+        (item) => getId(item) === conversationId,
+      );
+
+      const updatedConversation = {
+        ...existing,
+        ...conversation,
+      };
+
+      const conversationList = existing
+        ? state.conversationList.map((item) =>
+            getId(item) === conversationId
+              ? updatedConversation
+              : item,
+          )
+        : [updatedConversation, ...state.conversationList];
+
+      const activeConversation =
+        getId(state.activeConversation) === conversationId
+          ? {
+              ...state.activeConversation,
+              ...updatedConversation,
+            }
+          : state.activeConversation;
+
+      return {
+        conversationList,
+        activeConversation,
+      };
+    });
+  },
 
   setMessages: (messages) =>
     set({
-      messages,
+      messages: Array.isArray(messages) ? messages : [],
     }),
 
   addMessage: (message) =>
-    set((state) => ({
-      messages: [...state.messages, message],
-    })),
+    set((state) => {
+      if (!message) return state;
+
+      const messageId = getId(message);
+
+      if (
+        messageId &&
+        state.messages.some(
+          (existing) => getId(existing) === messageId,
+        )
+      ) {
+        return state;
+      }
+
+      return {
+        messages: [...state.messages, message],
+      };
+    }),
 
   updateMessage: (clientId, updates) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.clientId === clientId ? { ...message, ...updates } : message,
+        message.clientId === clientId
+          ? { ...message, ...updates }
+          : message,
       ),
     })),
 

@@ -26,6 +26,7 @@ import { Avatar } from "./Avatar";
 import { AddMemberModal } from "./AddMemberModal";
 import { InviteLinkModal } from "./InviteLinkModal";
 import { ConfirmationDialog } from "./ConfirmationDialog";
+import { getMessages } from "../services/messageService";
 
 const BASE_MEMBER_ACTIONS = [
   { key: "view-profile", label: "View Profile" },
@@ -77,6 +78,7 @@ export function GroupDetailsPanel({
   const setActiveConversation = useChatStore(
     (state) => state.setActiveConversation,
   );
+  const addMessage = useChatStore((state) => state.addMessage);
   const currentConversation =
     activeConversation?._id === conversation?._id
       ? activeConversation
@@ -150,6 +152,23 @@ export function GroupDetailsPanel({
     );
   };
 
+  const refreshConversationMessages = async (conversationId) => {
+    try {
+      const result = await getMessages(conversationId);
+
+      const messages = Array.isArray(result) ? result : [];
+
+      const store = useChatStore.getState();
+      const activeId = store.activeConversation?._id;
+
+      if (String(activeId) === String(conversationId)) {
+        store.setMessages(messages);
+      }
+    } catch (error) {
+      console.error("Failed to refresh messages after group update:", error);
+    }
+  };
+
   const handleMemberAction = async (actionKey, member) => {
     setMenuState({ memberId: null, position: null });
 
@@ -211,412 +230,434 @@ export function GroupDetailsPanel({
       const conversationId = currentConversation?._id;
       const memberId = getMemberId(member);
 
-      console.log("FRONTEND REMOVE MEMBER DEBUG", {
-        propConversationId: conversation?._id,
-        activeConversationId: activeConversation?._id,
-        selectedConversationId: conversationId,
-        selectedMember: member,
-        selectedMemberId: memberId,
-        participantIds: currentConversation?.participants?.map((participant) =>
-          typeof participant === "object"
-            ? (participant._id ?? participant.id)
-            : participant,
-        ),
-      });
+      if (!conversationId || !memberId) {
+        console.error("Missing conversation ID or member ID.");
+        return;
+      }
 
       try {
-        const updatedConversation = await removeMember(
-          conversationId,
-          memberId,
-        );
+        const result = await removeMember(conversationId, memberId);
 
+        // The backend returns { conversation, systemMessage }.
+        const updatedConversation = result?.conversation;
+        const systemMessage = result?.systemMessage;
+
+        if (!updatedConversation?._id) {
+          throw new Error("The API did not return the updated conversation.");
+        }
+
+        // Refresh active conversation and sidebar state.
         updateConversation(updatedConversation);
-        onClose();
+
+        // Add the newly saved system message immediately.
+        if (systemMessage) {
+          addMessage(systemMessage);
+        }
+
+        // Close the panel and clear the member action menu.
+        handleClose();
       } catch (error) {
         console.error("REMOVE MEMBER FAILED:", error.response?.data ?? error);
       }
+
+      return;
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    if (!inviteLink) {
+      return;
     }
 
-    const handleCopyInviteLink = async () => {
-      if (!inviteLink) {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setInviteCopied(true);
+    } catch (error) {
+      console.error(error);
+      setInviteError("Could not copy the invite link.");
+    }
+  };
+
+  const handleRevokeInvite = async () => {
+    setInviteRevoking(true);
+    setInviteError("");
+
+    try {
+      await revokeGroupInvite(currentConversation._id);
+      setGeneratedInvite(null);
+      setInviteCopied(false);
+      setInviteRevoked(true);
+    } catch (error) {
+      console.error(error);
+      setInviteError(
+        error.response?.data?.message || "Could not revoke the invite link.",
+      );
+    } finally {
+      setInviteRevoking(false);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    const userId = currentUser?._id || currentUser?.id;
+    if (!userId) {
+      setLeaveError("Could not identify your account.");
+      return;
+    }
+
+    setLeavingGroup(true);
+    setLeaveError("");
+
+    try {
+      await removeMember(currentConversation._id, userId);
+      setConversationList(
+        conversationList.filter((item) => item._id !== currentConversation._id),
+      );
+      setActiveConversation(null);
+      setLeaveConfirmationOpen(false);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      setLeaveError(
+        error.response?.data?.message || "Could not leave this group.",
+      );
+    } finally {
+      setLeavingGroup(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!menuState.memberId) {
+      return;
+    }
+
+    const handleOutsideClick = (event) => {
+      const target = event.target;
+
+      if (
+        target instanceof Element &&
+        target.closest("[data-member-trigger], [data-member-menu]")
+      ) {
         return;
       }
 
-      try {
-        await navigator.clipboard.writeText(inviteLink);
-        setInviteCopied(true);
-      } catch (error) {
-        console.error(error);
-        setInviteError("Could not copy the invite link.");
-      }
+      setMenuState({ memberId: null, position: null });
     };
 
-    const handleRevokeInvite = async () => {
-      setInviteRevoking(true);
-      setInviteError("");
+    document.addEventListener("mousedown", handleOutsideClick);
 
-      try {
-        await revokeGroupInvite(currentConversation._id);
-        setGeneratedInvite(null);
-        setInviteCopied(false);
-        setInviteRevoked(true);
-      } catch (error) {
-        console.error(error);
-        setInviteError(
-          error.response?.data?.message || "Could not revoke the invite link.",
-        );
-      } finally {
-        setInviteRevoking(false);
-      }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
+  }, [menuState.memberId]);
 
-    const handleLeaveGroup = async () => {
-      const userId = currentUser?._id || currentUser?.id;
-      if (!userId) {
-        setLeaveError("Could not identify your account.");
-        return;
-      }
+  const menuPosition = getMenuPosition(menuState.position);
 
-      setLeavingGroup(true);
-      setLeaveError("");
+  const selectedMember = members.find(
+    (member) => getMemberId(member) === menuState.memberId,
+  );
 
-      try {
-        await removeMember(currentConversation._id, userId);
-        setConversationList(
-          conversationList.filter(
-            (item) => item._id !== currentConversation._id,
-          ),
-        );
-        setActiveConversation(null);
-        setLeaveConfirmationOpen(false);
-        onClose();
-      } catch (error) {
-        console.error(error);
-        setLeaveError(
-          error.response?.data?.message || "Could not leave this group.",
-        );
-      } finally {
-        setLeavingGroup(false);
-      }
-    };
+  const selectedMemberIsAdmin = selectedMember
+    ? isGroupAdmin(selectedMember, currentConversation)
+    : false;
 
-    useEffect(() => {
-      if (!menuState.memberId) {
-        return;
-      }
+  const selectedMemberIsGroupCreator = selectedMember
+    ? isSameEntity(selectedMember, currentConversation.groupCreator)
+    : false;
 
-      const handleOutsideClick = (event) => {
-        const target = event.target;
+  const selectedMemberActions = selectedMember
+    ? getMemberActions({
+        currentUserIsAdmin,
+        currentUserIsGroupCreator,
+        selectedMemberIsAdmin,
+        selectedMemberIsGroupCreator,
+      })
+    : [];
 
-        if (
-          target instanceof Element &&
-          target.closest("[data-member-trigger], [data-member-menu]")
-        ) {
-          return;
-        }
-
-        setMenuState({ memberId: null, position: null });
-      };
-
-      document.addEventListener("mousedown", handleOutsideClick);
-
-      return () => {
-        document.removeEventListener("mousedown", handleOutsideClick);
-      };
-    }, [menuState.memberId]);
-
-    const menuPosition = getMenuPosition(menuState.position);
-
-    const selectedMember = members.find(
-      (member) => getMemberId(member) === menuState.memberId,
-    );
-
-    const selectedMemberIsAdmin = selectedMember
-      ? isGroupAdmin(selectedMember, currentConversation)
-      : false;
-
-    const selectedMemberIsGroupCreator = selectedMember
-      ? isSameEntity(selectedMember, currentConversation.groupCreator)
-      : false;
-
-    const selectedMemberActions = selectedMember
-      ? getMemberActions({
-          currentUserIsAdmin,
-          currentUserIsGroupCreator,
-          selectedMemberIsAdmin,
-          selectedMemberIsGroupCreator,
-        })
-      : [];
-
-    return (
-      <>
-        <AnimatePresence>
-          {open && (
-            <motion.aside
-              initial={{ width: 0, x: 40 }}
-              animate={{ width: "min(22rem,88vw)", x: 0 }}
-              exit={{ width: 0, x: 40 }}
-              transition={{ duration: 0.25 }}
-              className="relative z-10 h-full shrink-0 overflow-hidden border-l app-panel app-border"
-              aria-label={`${groupName} group details`}
+  return (
+    <>
+      <AnimatePresence>
+        {open && (
+          <motion.aside
+            initial={{ width: 0, x: 40 }}
+            animate={{ width: "min(22rem,88vw)", x: 0 }}
+            exit={{ width: 0, x: 40 }}
+            transition={{ duration: 0.25 }}
+            className="relative z-10 h-full shrink-0 overflow-hidden border-l app-panel app-border"
+            aria-label={`${groupName} group details`}
+          >
+            <div
+              className="flex h-full w-[min(22rem,88vw)] flex-col"
+              style={{ boxShadow: "var(--shadow-soft)" }}
             >
-              <div
-                className="flex h-full w-[min(22rem,88vw)] flex-col"
-                style={{ boxShadow: "var(--shadow-soft)" }}
-              >
-                <div className="flex h-16 shrink-0 items-center justify-between border-b app-border px-4">
-                  <p className="text-sm font-bold app-text">Group info</p>
-                  <button
-                    type="button"
-                    className="grid size-10 place-items-center rounded-xl transition app-icon-button"
-                    onClick={handleClose}
-                    aria-label="Close group details"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+              <div className="flex h-16 shrink-0 items-center justify-between border-b app-border px-4">
+                <p className="text-sm font-bold app-text">Group info</p>
+                <button
+                  type="button"
+                  className="grid size-10 place-items-center rounded-xl transition app-icon-button"
+                  onClick={handleClose}
+                  aria-label="Close group details"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                  <section className="border-b app-border px-5 py-7 text-center">
-                    <div className="mx-auto w-fit">
-                      <Avatar label={groupAvatar} size="lg" />
-                    </div>
-                    <h3 className="mt-4 break-words text-xl font-bold app-text">
-                      {groupName}
-                    </h3>
-                    <p className="mt-1 text-sm app-muted">
-                      Group · {members.length}{" "}
-                      {members.length === 1 ? "member" : "members"}
-                    </p>
-                  </section>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <section className="border-b app-border px-5 py-7 text-center">
+                  <div className="mx-auto w-fit">
+                    <Avatar label={groupAvatar} size="lg" />
+                  </div>
+                  <h3 className="mt-4 break-words text-xl font-bold app-text">
+                    {groupName}
+                  </h3>
+                  <p className="mt-1 text-sm app-muted">
+                    Group · {members.length}{" "}
+                    {members.length === 1 ? "member" : "members"}
+                  </p>
+                </section>
 
-                  <section className="border-b app-border px-4 py-5">
-                    <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
-                      Group members
-                    </p>
+                <section className="border-b app-border px-4 py-5">
+                  <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
+                    Group members
+                  </p>
 
-                    {currentUserIsAdmin && (
-                      <div className="mb-4 grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setAdminOverlay("add-member")}
-                          className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
-                        >
-                          <UserPlus size={15} />
-                          Add member
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleOpenInvite}
-                          className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
-                        >
-                          <Link2 size={15} />
-                          Invite link
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="space-y-1">
-                      {displayedMembers.map((member) => {
-                        const isCurrentUser = isSameUser(member, currentUser);
-                        const isMemberAdmin = isGroupAdmin(
-                          member,
-                          currentConversation,
-                        );
-
-                        const memberName =
-                          member.name || member.username || "Unknown user";
-
-                        const memberId = getMemberId(member);
-
-                        return (
-                          <div key={memberId} className="relative">
-                            <button
-                              type="button"
-                              disabled={isCurrentUser}
-                              data-member-trigger
-                              onClick={(event) =>
-                                handleMemberActionToggle(event, memberId)
-                              }
-                              className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left ${
-                                isCurrentUser
-                                  ? "cursor-default"
-                                  : "transition hover:bg-[var(--app-hover)]"
-                              }`}
-                            >
-                              <Avatar
-                                label={getMemberAvatar(member)}
-                                online={member.isOnline}
-                                size="sm"
-                              />
-                              <div className="min-w-0 flex-1">
-                                <div className="flex min-w-0 items-center gap-2">
-                                  <p className="truncate text-sm font-bold app-text">
-                                    {isCurrentUser ? "You" : memberName}
-                                  </p>
-
-                                  {isMemberAdmin && (
-                                    <span className="shrink-0 rounded-md app-chip px-1.5 py-0.5 text-[10px] font-semibold app-accent-text">
-                                      Admin
-                                    </span>
-                                  )}
-                                </div>
-
-                                <p className="truncate text-xs app-muted">
-                                  {isCurrentUser
-                                    ? memberName
-                                    : member.username
-                                      ? `@${member.username}`
-                                      : member.isOnline
-                                        ? "Online"
-                                        : "Offline"}
-                                </p>
-                              </div>
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {members.length > 4 && (
+                  {currentUserIsAdmin && (
+                    <div className="mb-4 grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() =>
-                          setExpandedMembersConversationId(
-                            showAllMembers ? null : currentConversation._id,
-                          )
-                        }
-                        className="mt-3 w-full rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
-                        aria-expanded={showAllMembers}
+                        onClick={() => setAdminOverlay("add-member")}
+                        className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
                       >
-                        {showAllMembers
-                          ? "Show fewer members"
-                          : `Show all ${members.length} members`}
+                        <UserPlus size={15} />
+                        Add member
                       </button>
-                    )}
-                  </section>
-
-                  <section className="border-b app-border px-4 py-5">
-                    <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
-                      Shared content
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <DetailStat icon={Image} label="Media" value="0" />
-                      <DetailStat icon={Link2} label="Links" value="0" />
-                      <DetailStat icon={File} label="Docs" value="0" />
+                      <button
+                        type="button"
+                        onClick={handleOpenInvite}
+                        className="flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
+                      >
+                        <Link2 size={15} />
+                        Invite link
+                      </button>
                     </div>
-                  </section>
+                  )}
 
-                  <section className="px-4 py-5">
-                    <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
-                      Chat settings
-                    </p>
-                    <div className="overflow-hidden rounded-2xl border app-card">
-                      <InfoRow
-                        icon={Bell}
-                        label="Notifications"
-                        value="Default"
-                      />
-                      <InfoRow
-                        icon={UsersRound}
-                        label="Group permissions"
-                        value="All members"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    {displayedMembers.map((member) => {
+                      const isCurrentUser = isSameUser(member, currentUser);
+                      const isMemberAdmin = isGroupAdmin(
+                        member,
+                        currentConversation,
+                      );
 
-                    <div className="mt-4 flex items-start gap-3 rounded-2xl border app-chip p-3">
-                      <LockKeyhole size={18} className="mt-0.5 shrink-0" />
-                      <p className="text-xs font-medium leading-5">
-                        Messages and calls in this group are end-to-end
-                        encrypted.
-                      </p>
-                    </div>
-                  </section>
+                      const memberName =
+                        member.name || member.username || "Unknown user";
 
-                  <section className="border-t app-border px-4 py-5">
-                    {leaveError && (
-                      <p role="alert" className="mb-3 text-sm text-red-500">
-                        {leaveError}
-                      </p>
-                    )}
+                      const memberId = getMemberId(member);
+
+                      return (
+                        <div key={memberId} className="relative">
+                          <button
+                            type="button"
+                            disabled={isCurrentUser}
+                            data-member-trigger
+                            onClick={(event) =>
+                              handleMemberActionToggle(event, memberId)
+                            }
+                            className={`flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left ${
+                              isCurrentUser
+                                ? "cursor-default"
+                                : "transition hover:bg-[var(--app-hover)]"
+                            }`}
+                          >
+                            <Avatar
+                              label={getMemberAvatar(member)}
+                              online={member.isOnline}
+                              size="sm"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <p className="truncate text-sm font-bold app-text">
+                                  {isCurrentUser ? "You" : memberName}
+                                </p>
+
+                                {isMemberAdmin && (
+                                  <span className="shrink-0 rounded-md app-chip px-1.5 py-0.5 text-[10px] font-semibold app-accent-text">
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="truncate text-xs app-muted">
+                                {isCurrentUser
+                                  ? memberName
+                                  : member.username
+                                    ? `@${member.username}`
+                                    : member.isOnline
+                                      ? "Online"
+                                      : "Offline"}
+                              </p>
+                            </div>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {members.length > 4 && (
                     <button
                       type="button"
-                      onClick={() => setLeaveConfirmationOpen(true)}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-3 text-sm font-bold text-red-500 transition hover:bg-red-500/10"
+                      onClick={() =>
+                        setExpandedMembersConversationId(
+                          showAllMembers ? null : currentConversation._id,
+                        )
+                      }
+                      className="mt-3 w-full rounded-xl border px-3 py-2 text-xs font-bold transition app-ghost-button"
+                      aria-expanded={showAllMembers}
                     >
-                      <LogOut size={17} />
-                      Leave group
+                      {showAllMembers
+                        ? "Show fewer members"
+                        : `Show all ${members.length} members`}
                     </button>
-                  </section>
-                </div>
+                  )}
+                </section>
+
+                <section className="border-b app-border px-4 py-5">
+                  <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
+                    Shared content
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <DetailStat icon={Image} label="Media" value="0" />
+                    <DetailStat icon={Link2} label="Links" value="0" />
+                    <DetailStat icon={File} label="Docs" value="0" />
+                  </div>
+                </section>
+
+                <section className="px-4 py-5">
+                  <p className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.18em] app-faint">
+                    Chat settings
+                  </p>
+                  <div className="overflow-hidden rounded-2xl border app-card">
+                    <InfoRow
+                      icon={Bell}
+                      label="Notifications"
+                      value="Default"
+                    />
+                    <InfoRow
+                      icon={UsersRound}
+                      label="Group permissions"
+                      value="All members"
+                    />
+                  </div>
+
+                  <div className="mt-4 flex items-start gap-3 rounded-2xl border app-chip p-3">
+                    <LockKeyhole size={18} className="mt-0.5 shrink-0" />
+                    <p className="text-xs font-medium leading-5">
+                      Messages and calls in this group are end-to-end encrypted.
+                    </p>
+                  </div>
+                </section>
+
+                <section className="border-t app-border px-4 py-5">
+                  {leaveError && (
+                    <p role="alert" className="mb-3 text-sm text-red-500">
+                      {leaveError}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setLeaveConfirmationOpen(true)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-3 text-sm font-bold text-red-500 transition hover:bg-red-500/10"
+                  >
+                    <LogOut size={17} />
+                    Leave group
+                  </button>
+                </section>
               </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
-        {open &&
-          menuState.memberId &&
-          menuPosition &&
-          createPortal(
-            <div
-              data-member-menu
-              className="fixed z-[9999] w-[136px] overflow-hidden rounded-lg border app-card-strong py-0.5 shadow-xl"
-              style={{
-                left: `${menuPosition.left}px`,
-                top: `${menuPosition.top}px`,
-              }}
-            >
-              {selectedMemberActions.map((action) => (
-                <button
-                  key={action.key}
-                  type="button"
-                  onClick={() => handleMemberAction(action.key, selectedMember)}
-                  className={`block w-full whitespace-nowrap px-2 py-1 text-left text-sm font-extralight leading-tight transition hover:bg-[var(--app-hover)] ${
-                    action.danger ? "text-red-500" : "app-text"
-                  }`}
-                >
-                  {action.label}
-                </button>
-              ))}
-            </div>,
-            document.body,
-          )}
+      {open &&
+        menuState.memberId &&
+        menuPosition &&
+        createPortal(
+          <div
+            data-member-menu
+            className="fixed z-[9999] w-[136px] overflow-hidden rounded-lg border app-card-strong py-0.5 shadow-xl"
+            style={{
+              left: `${menuPosition.left}px`,
+              top: `${menuPosition.top}px`,
+            }}
+          >
+            {selectedMemberActions.map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                onClick={() => handleMemberAction(action.key, selectedMember)}
+                className={`block w-full whitespace-nowrap px-2 py-1 text-left text-sm font-extralight leading-tight transition hover:bg-[var(--app-hover)] ${
+                  action.danger ? "text-red-500" : "app-text"
+                }`}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
 
-        <AddMemberModal
-          open={open && adminOverlay === "add-member"}
-          onClose={handleAdminOverlayClose}
-          conversation={currentConversation}
-          onMemberAdded={(updatedConversation) => {
-            updateConversation(updatedConversation);
-            setActiveConversation(updatedConversation);
-            onClose();
-          }}
-        />
-        <InviteLinkModal
-          open={open && adminOverlay === "invite-link"}
-          onClose={handleAdminOverlayClose}
-          inviteLink={inviteLink}
-          inviteCopied={inviteCopied}
-          onCopy={handleCopyInviteLink}
-          expiresAt={generatedInvite?.expiresAt}
-          loading={inviteLoading}
-          error={inviteError}
-          revoked={inviteRevoked}
-          revoking={inviteRevoking}
-          onRevoke={handleRevokeInvite}
-        />
-        <ConfirmationDialog
-          open={leaveConfirmationOpen}
-          title="Leave this group?"
-          description={`You will no longer receive messages from ${groupName}.`}
-          confirmLabel={leavingGroup ? "Leaving…" : "Leave group"}
-          confirmTone="danger"
-          icon={LogOut}
-          onConfirm={handleLeaveGroup}
-          onCancel={() => setLeaveConfirmationOpen(false)}
-        />
-      </>
-    );
-  };
+      <AddMemberModal
+        open={open && adminOverlay === "add-member"}
+        onClose={handleAdminOverlayClose}
+        conversation={currentConversation}
+        onMemberAdded={(result) => {
+          // Support either a direct conversation or { conversation, systemMessage }
+          const updatedConversation = result?.conversation ?? result;
+
+          if (!updatedConversation?._id) {
+            console.error(
+              "Invalid conversation returned after adding member:",
+              result,
+            );
+            return;
+          }
+
+          // Update the conversation list and active conversation
+          updateConversation(updatedConversation);
+          setActiveConversation(updatedConversation);
+
+          // Add the system message if the API returned one
+          if (result?.systemMessage) {
+            addMessage(result.systemMessage);
+          }
+
+          onClose();
+        }}
+      />
+      <InviteLinkModal
+        open={open && adminOverlay === "invite-link"}
+        onClose={handleAdminOverlayClose}
+        inviteLink={inviteLink}
+        inviteCopied={inviteCopied}
+        onCopy={handleCopyInviteLink}
+        expiresAt={generatedInvite?.expiresAt}
+        loading={inviteLoading}
+        error={inviteError}
+        revoked={inviteRevoked}
+        revoking={inviteRevoking}
+        onRevoke={handleRevokeInvite}
+      />
+      <ConfirmationDialog
+        open={leaveConfirmationOpen}
+        title="Leave this group?"
+        description={`You will no longer receive messages from ${groupName}.`}
+        confirmLabel={leavingGroup ? "Leaving…" : "Leave group"}
+        confirmTone="danger"
+        icon={LogOut}
+        onConfirm={handleLeaveGroup}
+        onCancel={() => setLeaveConfirmationOpen(false)}
+      />
+    </>
+  );
 
   function DetailStat({ icon: Icon, label, value }) {
     return (

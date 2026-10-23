@@ -1,10 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { ChatWindow } from "../components/ChatWindow";
 import { ConversationSidebar } from "../components/ConversationSidebar";
 import { DetailsPanel } from "../components/DetailsPanel";
 import { GroupDetailsPanel } from "../components/GroupDetailsPanel";
 import { EmptyChatState } from "../components/EmptyChatState";
-import { conversations } from "../data/messaging";
 import { LoadingPage } from "../components/LoadingPage";
 import { getConversations } from "../services/conversationService";
 import { useChatStore } from "../store/chatStore";
@@ -13,56 +13,53 @@ export function MessagingShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
   const setConversationList = useChatStore(
     (state) => state.setConversationList,
   );
-  const activeConversation = useChatStore((state) => state.activeConversation);
+
+  const activeConversation = useChatStore(
+    (state) => state.activeConversation,
+  );
+
   const setActiveConversation = useChatStore(
     (state) => state.setActiveConversation,
   );
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    const loadConversations = async () => {
       try {
         setLoading(true);
 
-        const conversations = await getConversations();
-        setConversationList(conversations);
-        console.log(conversations);
-        // Simulate API call
-        // await new Promise((resolve) => setTimeout(resolve, 2000));
-      } catch (err) {
-        console.error(err);
+        const result = await getConversations();
+
+        if (!cancelled) {
+          setConversationList(
+            Array.isArray(result) ? result : [],
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    })();
-  }, []);
+    };
 
-  useEffect(() => {
-    console.log("ACTIVE CONVERSATION STATE:", {
-      id: activeConversation?._id,
-      type: activeConversation?.type,
-      detailsOpen,
-    });
-  }, [activeConversation, detailsOpen]);
+    loadConversations();
 
-  // const selectedConversation = conversations.find(
-  //   (conversation) => conversation.id === activeId,
-  // );
+    return () => {
+      cancelled = true;
+    };
+  }, [setConversationList]);
 
   const handleSelectConversation = (conversation) => {
-    console.log("SELECTING CONVERSATION:", conversation);
-
     setActiveConversation(conversation);
     setDetailsOpen(false);
   };
-
-  console.log("FLUX DETAILS DEBUG", {
-    type: activeConversation?.type,
-    detailsOpen,
-    conversationId: activeConversation?._id,
-  });
 
   return (
     <div className="relative flex h-dvh overflow-hidden app-root">
@@ -71,6 +68,7 @@ export function MessagingShell() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
+
       {activeConversation ? (
         <>
           <ChatWindow
@@ -95,8 +93,11 @@ export function MessagingShell() {
           )}
         </>
       ) : (
-        <EmptyChatState onOpenSidebar={() => setSidebarOpen(true)} />
+        <EmptyChatState
+          onOpenSidebar={() => setSidebarOpen(true)}
+        />
       )}
+
       {loading && <LoadingPage />}
     </div>
   );

@@ -11,7 +11,9 @@ const MessageSchema = new mongoose.Schema(
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: function () {
+        return this.type !== "system";
+      },
     },
 
     content: {
@@ -22,16 +24,9 @@ const MessageSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["text", "image", "video", "file"],
+      enum: ["text", "image", "video", "file", "system"],
       default: "text",
     },
-
-    // deliveredTo: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User",
-    //   },
-    // ],
 
     seenBy: [
       {
@@ -49,10 +44,27 @@ const MessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    systemEvent: {
+      type: String,
+      default: null,
+    },
+
+    actor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    target: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = mongoose.model("Message", MessageSchema);

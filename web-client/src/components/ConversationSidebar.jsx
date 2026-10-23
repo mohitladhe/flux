@@ -132,11 +132,11 @@ export function ConversationSidebar({
                       {conversation.lastMessage !== null && (
                         <>
                           {conversation.type === "group" &&
-                          conversation.lastMessage?.sender.username !==
+                          conversation.lastMessage?.sender?.username !==
                             user.username
-                            ? (conversation.lastMessage?.sender.name ??
+                            ? (conversation.lastMessage?.sender?.name ??
                                 "@" +
-                                  conversation.lastMessage?.sender.username) +
+                                  conversation.lastMessage?.sender?.username) +
                               ": "
                             : ""}
                           {conversation.lastMessage?.content}

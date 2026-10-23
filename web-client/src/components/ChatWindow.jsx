@@ -1,10 +1,17 @@
-import { useState, useEffect, useRef, Fragment } from "react";
-import { Menu, Phone, Search, ShieldCheck, Video } from "lucide-react";
-// import { messages } from "../data/messaging";
+
+import { useEffect, useRef, Fragment } from "react";
+import {
+  Menu,
+  Phone,
+  Search,
+  ShieldCheck,
+  Video,
+} from "lucide-react";
 import { Avatar } from "./Avatar";
 import { ChatComposer } from "./ChatComposer";
 import { MessageBubble } from "./MessageBubble";
 import { MessageDateSeparator } from "./MessageDateSeparator";
+import { SystemMessage } from "./SystemMessage";
 import { useChatStore } from "../store/chatStore";
 import { getMessages } from "../services/messageService";
 import { isDifferentDay } from "../utils/isDifferentDay";
@@ -13,32 +20,40 @@ export function ChatWindow({
   conversation,
   onOpenSidebar,
   onOpenDetails,
-  onOpen,
   onLoading,
 }) {
   const messages = useChatStore((state) => state.messages);
   const setMessages = useChatStore((state) => state.setMessages);
+
   const bottomRef = useRef(null);
-  console.log(conversation);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
-      behaviour: "smooth",
+      behavior: "smooth",
+      block: "end",
     });
   }, [messages]);
 
   useEffect(() => {
-    if (!conversation?._id) return;
+    const conversationId = conversation?._id;
+
+    if (!conversationId) return;
 
     let cancelled = false;
 
     const loadMessages = async () => {
       try {
-        onLoading(true);
+        onLoading?.(true);
 
-        const result = await getMessages(conversation._id);
+        const result = await getMessages(conversationId);
 
         if (cancelled) return;
+
+        if (!Array.isArray(result)) {
+          console.error("Unexpected messages API response:", result);
+          setMessages([]);
+          return;
+        }
 
         const formattedMessages = result.map((message) => ({
           ...message,
@@ -48,11 +63,11 @@ export function ChatWindow({
         setMessages(formattedMessages);
       } catch (error) {
         if (!cancelled) {
-          console.error(error);
+          console.error("Failed to load messages:", error);
         }
       } finally {
         if (!cancelled) {
-          onLoading(false);
+          onLoading?.(false);
         }
       }
     };
@@ -76,65 +91,79 @@ export function ChatWindow({
           >
             <Menu size={20} />
           </button>
-          <button
-            type="button"
-            onClick={onOpenDetails}
-            className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-2xl px-2 py-1.5 text-left transition hover:bg-[var(--app-hover)]"
-            aria-label="Open conversation details"
-          >
-            <div className="flex min-w-0 items-center gap-3">
+
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={onOpenDetails}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-2 py-1.5 text-left transition hover:bg-[var(--app-hover)]"
+              aria-label="Open conversation details"
+            >
               <Avatar
                 label={conversation.display?.avatar}
-                // gradient={conversation.accent}
                 online={conversation.display?.isOnline}
               />
+
               <div className="min-w-0">
                 <h2 className="truncate text-base font-bold app-text sm:text-lg">
-                  {conversation.display?.name}
+                  {conversation.display?.name ?? "Conversation"}
                 </h2>
+
                 <div className="flex items-center gap-1 text-xs font-medium app-success-text">
                   <ShieldCheck size={13} />
                   E2EE verified
                 </div>
               </div>
-            </div>
+            </button>
 
             <div className="flex items-center gap-1 sm:gap-2">
               {[Search, Phone, Video].map((Icon, index) => (
-                <span
+                <button
                   key={index}
+                  type="button"
+                  aria-label={
+                    ["Search", "Voice call", "Video call"][index]
+                  }
                   className="hidden size-10 place-items-center rounded-xl app-icon-button sm:grid"
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <Icon size={19} />
-                </span>
+                </button>
               ))}
             </div>
-          </button>
+          </div>
         </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-3">
-          {/* <div className="mx-auto flex max-w-xl items-center gap-3 rounded-2xl border app-chip px-4 py-3 text-center text-xs font-semibold">
-            <ShieldCheck size={16} className="shrink-0" />
-            Key fingerprints match across every active device in this room.
-          </div> */}
-
           {messages.map((message, index) => {
             const previousMessage = messages[index - 1];
+
             const showDate =
               !previousMessage ||
-              isDifferentDay(previousMessage.createdAt, message.createdAt);
+              isDifferentDay(
+                previousMessage.createdAt,
+                message.createdAt,
+              );
 
             return (
-              <Fragment key={message._id}>
+              <Fragment key={message._id ?? message.clientId ?? index}>
                 {showDate && (
-                  <MessageDateSeparator timestamp={message.createdAt} />
+                  <MessageDateSeparator
+                    timestamp={message.createdAt}
+                  />
                 )}
-                <MessageBubble message={message} />
+
+                {message.type === "system" ? (
+                  <SystemMessage message={message} />
+                ) : (
+                  <MessageBubble message={message} />
+                )}
               </Fragment>
             );
           })}
+
           <div ref={bottomRef} />
         </div>
       </div>

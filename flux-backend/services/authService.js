@@ -66,10 +66,17 @@ const registerUser = async (userData) => {
   }
 
   // Username validation
-  if (username.trim().length < 3) {
+  if (username.length < 5 || username.length > 12) {
     throw new ApiError(
       HTTP_STATUS.BAD_REQUEST,
-      "Username must be at least 3 characters long.",
+      "Username must be between 5 and 12 characters.",
+    );
+  }
+
+  if (!/^[a-zA-Z0-9_.]+$/.test(username)) {
+    throw new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      "Username can contain only letters, numbers, underscores and full stops.",
     );
   }
 

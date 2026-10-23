@@ -5,6 +5,7 @@ const ApiError = require("../utils/ApiError");
 const { formatConversation } = require("../utils/formatConversation");
 const crypto = require("crypto");
 const { group } = require("console");
+const { createSystemMessage } = require("../utils/systemMessage");
 
 const createConversation = async (participantId, userId) => {
   if (!participantId) {
@@ -125,6 +126,8 @@ const updateAdminStatus = async (conversationId, memberId, userId, isAdmin) => {
     );
   }
 
+  const systemEvent = null;
+
   const conversation = await Conversation.findById(conversationId);
 
   if (!conversation) {
@@ -172,12 +175,26 @@ const updateAdminStatus = async (conversationId, memberId, userId, isAdmin) => {
     (admin) => admin.toString() === memberId.toString(),
   );
 
+  const [actor, target] = await Promise.all([
+    User.findById(userId).select("_id username name avatar"),
+    User.findById(memberId).select("_id username name avatar"),
+  ]);
+
+  if (!actor) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Actor user not found.");
+  }
+
+  if (!target) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Member user not found.");
+  }
+
   if (isAdmin) {
     if (isMemberAdmin) {
       throw new ApiError(HTTP_STATUS.CONFLICT, "Member is already an Admin.");
     }
 
     conversation.admins.push(memberId);
+    systemEvent = "admin_promoted";
   } else {
     if (!isMemberAdmin) {
       throw new ApiError(HTTP_STATUS.CONFLICT, "Member is not an Admin.");
@@ -185,15 +202,26 @@ const updateAdminStatus = async (conversationId, memberId, userId, isAdmin) => {
     conversation.admins = conversation.admins.filter(
       (admin) => admin.toString() !== memberId.toString(),
     );
+    systemEvent = "admin_demoted";
   }
 
   await conversation.save();
+
+  const systemMessage = await createSystemMessage({
+    conversationId: conversation._id,
+    systemEvent: systemEvent,
+    actor,
+    target,
+  });
 
   const updatedConversation = await Conversation.findById(
     conversation._id,
   ).populate({ path: "participants", select: "username name avatar isOnline" });
 
-  return formatConversation(updatedConversation, userId);
+  return {
+    conversation: formatConversation(updatedConversation, userId),
+    systemMessage,
+  };
 };
 
 const removeMember = async (conversationId, memberId, userId) => {
@@ -289,16 +317,55 @@ const removeMember = async (conversationId, memberId, userId) => {
     (admin) => admin.toString() !== memberId.toString(),
   );
 
+  const [actor, target] = await Promise.all([
+    User.findById(userId).select("_id username name avatar"),
+    User.findById(memberId).select("_id username name avatar"),
+  ]);
+
+  if (!actor) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Actor user not found.");
+  }
+
+  if (!target) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Member user not found.");
+  }
+
   await conversation.save();
 
-  const updatedConversation = await Conversation.findById(
-    conversation._id,
-  ).populate({
-    path: "participants",
-    select: "username name avatar isOnline",
+  const systemMessage = await createSystemMessage({
+    conversationId: conversation._id,
+    systemEvent: "member_removed",
+    actor,
+    target,
   });
 
-  return formatConversation(updatedConversation, userId);
+  // Keep the conversation's latest-message reference in sync.
+  conversation.lastMessage = systemMessage._id;
+  await conversation.save();
+
+  const updatedConversation = await Conversation.findById(conversation._id)
+    .populate("participants", "username name avatar isOnline")
+    .populate("admins", "username name avatar")
+    .populate("groupCreator", "username name avatar")
+    .populate({
+      path: "lastMessage",
+      populate: {
+        path: "sender",
+        select: "username name avatar",
+      },
+    });
+
+  if (!updatedConversation) {
+    throw new ApiError(
+      HTTP_STATUS.NOT_FOUND,
+      "Conversation not found after updating.",
+    );
+  }
+
+  return {
+    conversation: formatConversation(updatedConversation, userId),
+    systemMessage,
+  };
 };
 
 const addMember = async (conversationId, memberId, userId) => {
@@ -312,7 +379,7 @@ const addMember = async (conversationId, memberId, userId) => {
   const conversation = await Conversation.findById(conversationId);
 
   if (!conversation) {
-    throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Converation not found.");
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Conversation not found.");
   }
 
   if (conversation.type !== "group") {
@@ -355,18 +422,52 @@ const addMember = async (conversationId, memberId, userId) => {
     );
   }
 
-  conversation.participants.push(memberId);
+  const [actor, target] = await Promise.all([
+    User.findById(userId).select("_id username name avatar"),
+    User.findById(memberId).select("_id username name avatar"),
+  ]);
 
+  if (!actor) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Actor user not found.");
+  }
+
+  if (!target) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Member user not found.");
+  }
+
+  conversation.participants.addToSet(memberId);
   await conversation.save();
 
-  const updatedConversation = await Conversation.findById(
-    conversation._id,
-  ).populate({
-    path: "participants",
-    select: "username name avatar isOnline",
+  const systemMessage = await createSystemMessage({
+    conversationId: conversation._id,
+    systemEvent: "member_added",
+    actor,
+    target,
   });
 
-  return formatConversation(updatedConversation, userId);
+  const updatedConversation = await Conversation.findById(conversation._id)
+    .populate("participants", "username name avatar isOnline")
+    .populate("admins", "username name avatar")
+    .populate("groupCreator", "username name avatar")
+    .populate({
+      path: "lastMessage",
+      populate: {
+        path: "sender",
+        select: "username name avatar",
+      },
+    });
+
+  if (!updatedConversation) {
+    throw new ApiError(
+      HTTP_STATUS.NOT_FOUND,
+      "Conversation not found after updating.",
+    );
+  }
+
+  return {
+    conversation: formatConversation(updatedConversation, userId),
+    systemMessage,
+  };
 };
 
 const INVITE_EXPIRY_DATE = 7;
@@ -493,12 +594,33 @@ const joinGroupByInvite = async (token, userId) => {
     };
   }
 
+  const [actor, target] = await Promise.all([
+    User.findById(userId).select("_id username name avatar"),
+    User.findById(memberId).select("_id username name avatar"),
+  ]);
+
+  if (!actor) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Actor user not found.");
+  }
+
+  if (!target) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "Member user not found.");
+  }
+
   conversation.participants.addToSet(userId);
   await conversation.save();
+
+  const systemMessage = await createSystemMessage({
+    conversationId: conversation._id,
+    systemEvent: "member_joined",
+    actor,
+    target,
+  });
 
   return {
     groupId: conversation._id,
     alreadyMember: false,
+    systemMessage,
   };
 };
 

@@ -1,20 +1,33 @@
+
 const formatMessage = (message) => {
+  if (!message) return null;
+
+  const sender = message.sender ?? null;
+
   return {
     _id: message._id,
     conversation: message.conversation,
-    sender: {
-      _id: message.sender._id,
-      name: message.sender.name,
-      username: message.sender.username,
-      avatar: message.sender.avatar,
-    },
-    content: message.content,
-    type: message.type,
-    seenBy: message.seenBy,
-    edited: message.edited,
-    deletedForEveryone: message.deletedForEveryone,
+
+    sender: sender
+      ? {
+          _id: sender._id,
+          name: sender.name ?? "",
+          username: sender.username ?? "",
+          avatar: sender.avatar ?? null,
+        }
+      : null,
+
+    content: message.content ?? "",
+    type: message.type ?? "text",
+    seenBy: message.seenBy ?? [],
+    edited: message.edited ?? false,
+    deletedForEveryone: message.deletedForEveryone ?? false,
     createdAt: message.createdAt,
     updatedAt: message.updatedAt,
+
+    systemEvent: message.systemEvent ?? null,
+    actor: message.actor ?? null,
+    target: message.target ?? null,
   };
 };
 
