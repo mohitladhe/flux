@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Archive, Plus, Search, Settings } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { NewChatOverlay } from "./NewChatOverlay";
-import { conversations, currentUser } from "../data/messaging";
 import { useAuthStore } from "../store/authStore";
 import { useChatStore } from "../store/chatStore";
 import { formatConversationTime } from "../utils/formatConversationTime";
@@ -19,6 +18,11 @@ export function ConversationSidebar({
   const [newChatOpen, setNewChatOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const conversationList = useChatStore((state) => state.conversationList);
+  const profileName = user?.name || user?.username || "Your profile";
+  const profileAvatar =
+    user?.avatarLabel ||
+    user?.avatar ||
+    getInitials(user?.name || user?.username || "U");
 
   return (
     <>
@@ -179,15 +183,18 @@ export function ConversationSidebar({
             className="flex items-center gap-3 rounded-2xl app-panel-muted p-3 transition app-ghost-button cursor-pointer"
           >
             <Avatar
-              label={currentUser.avatar}
+              label={profileAvatar}
               gradient="avatar-neutral"
               online
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold app-text">
-                {currentUser.name}
+                {profileName}
               </p>
-              <p className="text-xs app-success-text">{currentUser.status}</p>
+              <p className="truncate text-xs app-muted">
+                {user?.username ? `@${user.username}` : "Profile"}
+                {user?.status ? ` · ${user.status}` : ""}
+              </p>
             </div>
           </div>
         </div>
@@ -198,5 +205,17 @@ export function ConversationSidebar({
         onClose={() => setNewChatOpen(false)}
       />
     </>
+  );
+}
+
+function getInitials(name) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "U"
   );
 }

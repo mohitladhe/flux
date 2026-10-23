@@ -51,6 +51,24 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    avatarLabel: {
+      type: String,
+      default: "",
+      maxlength: 2,
+      trim: true,
+    },
+    avatarGradient: {
+      type: String,
+      enum: [
+        "avatar-primary",
+        "avatar-work",
+        "avatar-design",
+        "avatar-team",
+        "avatar-support",
+        "avatar-neutral",
+      ],
+      default: "avatar-neutral",
+    },
   },
   { timestamps: true },
 );

@@ -329,6 +329,144 @@ const setNewPassword = async (userData) => {
   };
 };
 
+const getMyProfile = async (userId) => {
+  const user = await User.findById(userId).select(
+    "_id username email name avatar avatarLabel avatarGradient about status verified lastSeen isOnline createdAt updatedAt"
+  );
+
+  if (!user) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "User not found.");
+  }
+
+  return user;
+};
+
+const updateMyProfile = async (userId, profileData) => {
+  const { name, username, about, status, avatarLabel, avatarGradient } =
+    profileData;
+
+  const updates = {};
+
+  if (name !== undefined) {
+    if (typeof name !== "string" || name.trim().length > 50) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Display name must be 50 characters or fewer."
+      );
+    }
+
+    updates.name = name.trim();
+  }
+
+  if (username !== undefined) {
+    if (typeof username !== "string") {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Invalid username.");
+    }
+
+    const normalizedUsername = username.trim().toLowerCase();
+
+    if (
+      normalizedUsername.length < 5 ||
+      normalizedUsername.length > 12 ||
+      !/^[a-zA-Z0-9_.]+$/.test(normalizedUsername)
+    ) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Username must be 5–12 characters and contain only letters, numbers, underscores, or full stops."
+      );
+    }
+
+    const existingUser = await User.findOne({
+      username: normalizedUsername,
+      _id: { $ne: userId },
+    });
+
+    if (existingUser) {
+      throw new ApiError(
+        HTTP_STATUS.CONFLICT,
+        "Username already exists."
+      );
+    }
+
+    updates.username = normalizedUsername;
+  }
+
+  if (about !== undefined) {
+    if (typeof about !== "string" || about.length > 140) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "About must be 140 characters or fewer."
+      );
+    }
+
+    updates.about = about.trim();
+  }
+
+  const allowedStatuses = [
+    "Available",
+    "Busy",
+    "Away",
+    "Do not disturb",
+    "Invisible",
+  ];
+
+  if (status !== undefined) {
+    if (!allowedStatuses.includes(status)) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, "Invalid status.");
+    }
+
+    updates.status = status;
+  }
+
+  if (avatarLabel !== undefined) {
+    if (
+      typeof avatarLabel !== "string" ||
+      avatarLabel.trim().length > 2
+    ) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Avatar initials must be at most 2 characters."
+      );
+    }
+
+    updates.avatarLabel = avatarLabel.trim().slice(0, 2).toUpperCase();
+  }
+
+  const allowedGradients = [
+    "avatar-primary",
+    "avatar-work",
+    "avatar-design",
+    "avatar-team",
+    "avatar-support",
+    "avatar-neutral",
+  ];
+
+  if (avatarGradient !== undefined) {
+    if (!allowedGradients.includes(avatarGradient)) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        "Invalid avatar color."
+      );
+    }
+
+    updates.avatarGradient = avatarGradient;
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: updates },
+    { new: true, runValidators: true }
+  ).select(
+    "_id username email name avatar avatarLabel avatarGradient about status verified lastSeen isOnline createdAt updatedAt"
+  );
+
+  if (!user) {
+    throw new ApiError(HTTP_STATUS.NOT_FOUND, "User not found.");
+  }
+
+  return user;
+};
+
 module.exports = {
   loginUser,
   registerUser,
@@ -337,4 +475,6 @@ module.exports = {
   requestPasswordReset,
   verifyPasswordReset,
   setNewPassword,
+  getMyProfile,
+  updateMyProfile,
 };

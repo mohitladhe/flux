@@ -65,6 +65,27 @@ const setNewPassword = asyncHandler(async (req, res) => {
   });
 });
 
+const getMyProfile = asyncHandler(async (req, res) => {
+  const userId = req.user?._id ?? req.user?.id;
+  const user = await authService.getMyProfile(userId);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: { loggedIn: true, user },
+  });
+});
+
+const updateMyProfile = asyncHandler(async (req, res) => {
+  const userId = req.user?._id ?? req.user?.id;
+  const user = await authService.updateMyProfile(userId, req.body);
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: {
+      message: "Profile updated successfully.",
+      user,
+    },
+  });
+});
+
 module.exports = {
   loginUser,
   registerUser,
@@ -74,4 +95,6 @@ module.exports = {
   requestPasswordReset,
   verifyPasswordReset,
   setNewPassword,
+  getMyProfile,
+  updateMyProfile,
 };

@@ -10,6 +10,8 @@ const {
   requestPasswordReset,
   verifyPasswordReset,
   setNewPassword,
+  getMyProfile,
+  updateMyProfile,
 } = require("../controllers/authController");
 const requireAuth = require("../middlewares/requireAuthMiddleware");
 
@@ -21,5 +23,7 @@ router.get("/me", requireAuth, verifyToken);
 router.post("/password-reset", requestPasswordReset);
 router.post("/verify-password-reset", verifyPasswordReset);
 router.post("/set-new-password", setNewPassword);
+router.get("/me", requireAuth, getMyProfile);
+router.patch("/me", requireAuth, updateMyProfile);
 
 module.exports = router;
